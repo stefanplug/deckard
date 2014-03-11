@@ -60,7 +60,9 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         slavelist.append(nodelist[index_next])
     if verbose == 1:
         print 'Sending message: UPDATE ' + str(slavelist)
-    clientsock.send('UPDATE ' + str(slavelist))
+    #clientsock.send('UPDATE ' + str(slavelist))
+    marshalled = pickle.Pickler(slavelist)
+    clientsock.send('UPDATE:' + slavelist)
 
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
 def update_masters(clientsock, addr, data, hashed_addr):
