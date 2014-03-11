@@ -42,7 +42,7 @@ def listen():
 	msg = []
 	while 1:
 		recieved = sniff(filter="tcp and port 1337", count=1)
-			return str(msg)
+		return str(msg)
 
 def byte_converter(x, size):
 	teller = len(x) - (len(x) * 2)
