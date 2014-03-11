@@ -25,14 +25,22 @@ def usage():
 
 def hello_handler(clientsock, addr, data):
 	global nodelist
-	#TODO check if our list already contains you
-	
+	#Check if you are already in the nodelist
+	if verbose == 1:
+		print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
+	if addr[0] in nodelist:
+		clientsock.send('ERROR: You are already known')
+
 	#Hash your ip address and put you in the slave_list
 	if verbose == 1:
 		print 'Recieved a HELLO from ' + addr[0] + ', proceeding with hashing'
 	nodelist.append((hashlib.sha1(addr[0]).hexdigest(), addr[0]))
 	nodelist = sorted(nodelist)
-	print nodelist
+	if verbose == 1:
+		for node in nodelist:
+			print node
+	
+	
 	#clientsock.send('slavelist: ' + nodelist + ' use tests: [PING, PORTSCAN, SSH]')
 
 def bye_handler(clientsock, addr, data):
