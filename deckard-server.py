@@ -125,7 +125,7 @@ def message_handler(clientsock, addr):
 
 def main(argv):
     global verbose
-    global group
+    global groupsize
     try:
         opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
     except getopt.GetoptError:
@@ -138,7 +138,7 @@ def main(argv):
             groupsize = arg
         elif opt in ("-v", "--verbose"):
             verbose = 1
-
+0
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
