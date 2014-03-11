@@ -2,6 +2,9 @@
 import ConfigParser
 import socket
 import threading
+import re
+import pickle
+import json
 
 config = ConfigParser.ConfigParser()
 config.read("client.cfg")
@@ -15,7 +18,11 @@ def client(ip, port, message):
         sock.sendall(message)
         sock.settimeout(5.0)
         response = sock.recv(1024)
-        print("Received: {}".format(response))
+        print(json.JSONDecoder(response))
+        for b in a:
+            print(b)
+        #print("Received: {}".format(response))
+        
     finally:
         sock.close()
 
