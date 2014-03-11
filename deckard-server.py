@@ -55,7 +55,7 @@ def main(argv):
 	while 1:
 		print 'staying a while, and listening...'
 		clientsock, addr = serversock.accept()
-		print 'recieved a hello from:' + addr
+		print 'recieved a hello from:', addr
 		thread.start_new_thread(handler, (clientsock, addr))
 
 #Listen for Decard nodes
