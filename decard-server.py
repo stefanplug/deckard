@@ -9,6 +9,8 @@ from base64 import b64decode
 from time import sleep
 from scapy.all import *
 
+#sean is de beste
+
 def usage():
 	print("Usage: decard-server -g[roup]\n"
 		"-g[roup] 5 *The group size, default is 5\n"
