@@ -75,7 +75,7 @@ def update_masters(clientsock, addr, data, hashed_addr):
                     print 'We looped the entire ring' 
                 break
         print nodelist[index_next]
-        sendmsg(nodelist[index_next][1], PORT, 'update, want yolo')
+        sendmsg(nodelist[index_next][1], PORT, str(hashed_addr) + str(nodelist[index_self][1]))
         #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
     
 #handles an incomming hello message
