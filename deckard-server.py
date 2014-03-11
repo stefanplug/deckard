@@ -24,9 +24,9 @@ def gen_response():
 def handler(clientsock, addr):
 	while 1:
 		data = clientsock.recv(BUFF)
-		print 'data:' + repr(data)
+		print 'data:' + str(data)
 		if not data: break
-		if repr(data) == 'Hello':
+		if str(data) == 'Hello':
 			clientsock.send(gen_response())
 			print 'sent:' + repr(gen_response())
 
