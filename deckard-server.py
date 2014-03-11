@@ -18,17 +18,31 @@ def usage():
 	)
 	sys.exit(2)
 
-def gen_response():
-	return 'This_is_a_Kite_Shield'
+def hello_handler(clientsock, addr, data):
+	clientsock.send('a slave list for you')
+	print 'sent: a slave list for you'
 
-def handler(clientsock, addr):
+def bye_handler(clientsock, addr, data):
+	clientsock.send('I will remove you from the list and update the other servers')
+	print 'sent: I will remove you from the list and update the other servers'
+
+def update_handler(clientsock, addr, data):
+	clientsock.send('I will update stuff now')
+	print 'sent: I will update stuff now '
+
+def message_handler(clientsock, addr):
 	while 1:
 		data = clientsock.recv(BUFF)
 		print 'data:' + str(data)
 		if not data: break
-		if str(data) == 'Hello':
-			clientsock.send(gen_response())
-			print 'sent:' + repr(gen_response())
+
+		#the recieved message decider
+		if str(data) == 'hello':
+			hello_handler(clientsock, addr, data)
+		if str(data) == 'bye':
+			bye_handler(clientsock, addr, data)
+		if 'update' in str(data):
+			update_handler(clientsock, addr, data)
 
 def main(argv):
 	try:
@@ -52,7 +66,7 @@ def main(argv):
 		print 'staying a while, and listening...'
 		clientsock, addr = serversock.accept()
 		print 'recieved a hello from:', addr
-		thread.start_new_thread(handler, (clientsock, addr))
+		thread.start_new_thread(message_handler, (clientsock, addr))
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
