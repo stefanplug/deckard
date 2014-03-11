@@ -11,3 +11,8 @@ To install execute:
 ```
 pip install git+git://github.com/stefanplug/deckard.git
 ```
+
+To update to the latest version add the ```--upgrade``` parameter:
+```
+pip install --upgrade git+git://github.com/stefanplug/deckard.git
+```
