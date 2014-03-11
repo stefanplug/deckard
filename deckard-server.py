@@ -27,6 +27,7 @@ def usage():
 def hello_handler(clientsock, addr, data):
     global nodelist_mutex
     global nodelist
+
     #Check if you are already in the nodelist
     if verbose == 1:
         print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
@@ -37,17 +38,24 @@ def hello_handler(clientsock, addr, data):
             clientsock.send('ERROR: You are already known')
             return
 
-    #Hash your ip address and put you in the slave_list
+    #Hash the new node's ip address and put it in the node_list
     if verbose == 1:
         print addr[0] + ' is a new node, proceeding with hashing'
-    nodelist.append((hashlib.sha1(addr[0]).hexdigest(), addr[0]))
+    hashed_addr = hashlib.sha1(addr[0]).hexdigest()
+    nodelist.append((hashed_addr, addr[0]))
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
             print node
-    clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
 
-    #Return the folowing $groupsize nodes as slaves to the client
+    #Return the folowing $groupsize$ nodes as slaves to the client
+    if verbose == 1:
+        print 'Assigning the following ' + groupsize + ' nodes to ' + addr[0]
+    slavelist = []
+    index_self = nodelist.index((hashed_addr, addr[0]))
+    print index_self
+    
+    clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
 
 def bye_handler(clientsock, addr, data):
     clientsock.send('I will remove you from the list and update the other servers')
