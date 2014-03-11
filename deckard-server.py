@@ -31,7 +31,7 @@ def hello_handler(clientsock, addr, data):
 	for node in nodelist:
 		if addr[0] in node:
 			if verbose == 1:
-				print + addr[0] + ' is already known, aborting'
+				print addr[0] + ' is already known, aborting'
 			clientsock.send('ERROR: You are already known')
 			return
 
