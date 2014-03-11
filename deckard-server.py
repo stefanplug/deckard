@@ -50,7 +50,7 @@ def hello_handler(clientsock, addr, data):
 
     #Return the folowing $groupsize$ nodes as slaves to the client
     if verbose == 1:
-        print 'Assigning the following ' + groupsize + ' nodes to ' + addr[0]
+        print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
     slavelist = []
     index_self = nodelist.index((hashed_addr, addr[0]))
     print index_self
