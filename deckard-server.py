@@ -26,7 +26,7 @@ def usage():
     sys.exit(2)
 
 def sendmsg(ip, port, message):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock = socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ip, port))
     try:
         sock.sendall(message)
