@@ -3,7 +3,7 @@ import socket
 import threading
 
 ip="145.100.108.228"
-port="1337"
+port=1337
 
 def client(ip, port, message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
