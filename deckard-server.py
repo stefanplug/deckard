@@ -57,14 +57,14 @@ def update_masters(clientsock, addr, data, hashed_addr):
         index_next = index_self - teller - 1
         #create a ring
         if index_next >= len(nodelist):
-        index_next = index_next - len(nodelist)
-        #when we looped the ring then it can occur that we see ourselves again, stop that!
-        if index_next == index_self:
-            if verbose == 1:
-                print 'We looped the entire ring' 
-            break
-    print nodelist[index_next]
-    #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
+            index_next = index_next - len(nodelist)
+            #when we looped the ring then it can occur that we see ourselves again, stop that!
+            if index_next == index_self:
+                if verbose == 1:
+                    print 'We looped the entire ring' 
+                break
+        print nodelist[index_next]
+        #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
     
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
