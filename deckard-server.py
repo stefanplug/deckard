@@ -55,7 +55,16 @@ def hello_handler(clientsock, addr, data):
     index_self = nodelist.index((hashed_addr, addr[0]))
     print index_self
         for teller in range(0, groupsize):
-            print nodelist[index_self + teller + 1]
+            index_next = index_self + teller + 1
+            #create a ring
+            if index_next > len(nodelist):
+                index_next = index_next - len(nodelist)
+                #when we looped the ring then it can occur that we see ourselves again, stop that!
+                if index_next == index_self:
+                    if verbose == 1:
+                        print 'We looped the entire ring' 
+                    break
+            print nodelist[index_next]
 
     clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
 
