@@ -9,6 +9,8 @@ from base64 import b64decode
 from time import sleep
 from scapy.all import *
 
+#sean is de beste
+
 def usage():
 	print("Usage: mercurius -S[erver] -s[port_mode] -d[ip_mode] -f[ile] -k[ey]\n"
 		"-S[erver] *Listen for incomming covered messages\n"
