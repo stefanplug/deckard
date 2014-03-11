@@ -34,7 +34,7 @@ def hello_handler(clientsock, addr, data):
 	hashed_addr.update(addr[0])
 	hashed_addr.digest()
 	nodelist.append((hashed_addr, addr[0]))
-	nodelist = sorted(slavelist)
+	nodelist = sorted(nodelist)
 	print nodelist
 	clientsock.send('slavelist: ' + nodelist + ' use tests: [PING, PORTSCAN, SSH]')
 
