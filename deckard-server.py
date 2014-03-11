@@ -6,9 +6,11 @@ from time import sleep
 from socket import *
 import thread
 
-
-
-#sean is de beste
+#defaults
+groupsize = 5
+BUFF = 1024
+HOST = '0.0.0.0'
+PORT = 1337
 
 def usage():
 	print("Usage: decard-server -g[roup]\n"
@@ -34,12 +36,6 @@ def main(argv):
 	except getopt.GetoptError:
 		usage()
 
-	#defaults
-	groupsize = 5
-	BUFF = 1024
-	HOST = '0.0.0.0'
-	PORT = 1337
-
 	for opt, arg in opts:
 		if opt in ("-h", "--help"):
 			usage()
@@ -57,13 +53,6 @@ def main(argv):
 		clientsock, addr = serversock.accept()
 		print 'recieved a hello from:', addr
 		thread.start_new_thread(handler, (clientsock, addr))
-
-#Listen for Decard nodes
-def listen():
-	msg = []
-	while 1:
-		recieved = sniff(filter="tcp and port 1337", count=1)
-		return str(msg)
 
 if __name__ == '__main__':
 	main(sys.argv[1:])
