@@ -65,18 +65,18 @@ def update_masters(clientsock, addr, data, hashed_addr):
     if verbose == 1:
         print 'Updating the ' + str(groupsize) + ' nodes to be a master for ' + addr[0]
     index_self = nodelist.index((hashed_addr, addr[0]))
-    for teller in range(0, groupsize, -1):
-        index_next = index_self - teller - 1
+    for teller in range(0, groupsize):
+        index_previous = index_self - teller - 1
         #create a ring
-        if index_next <= 0 - len(nodelist):
-            index_next = index_next + len(nodelist)
+        if index_previous <= 0 - len(nodelist):
+            index_previous = index_previous + len(nodelist)
             #when we looped the ring then it can occur that we see ourselves again, stop that!
             if index_next == index_self:
                 if verbose == 1:
                     print 'We looped the entire ring' 
                 break
         if verbose == 1:
-            print 'Sending an update to master ' + nodelist[index_next]
+            print 'Sending an update to master ' + nodelist[index_previous]
         #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
         #sendmsg(nodelist[index_next][1], PORT, str(hashed_addr) + str(nodelist[index_self][1]))
 
