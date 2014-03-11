@@ -7,6 +7,7 @@ from socket import *
 #import thread
 #import threading
 import hashlib
+import pickle
 
 #defaults
 BUFF = 1024
@@ -23,6 +24,17 @@ def usage():
         "-v[erbose]         *Verbose mode"
     )
     sys.exit(2)
+
+def sendmsg(ip, port, message):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((ip, port))
+    try:
+        sock.sendall(message)
+        sock.settimeout(5.0)
+        response = sock.recv(1024)
+        print("Received: {}".format(response))
+    finally:
+        sock.close()
 
 #Return the folowing $groupsize$ nodes as slaves to the client
 def assign_slaves(clientsock, addr, data, hashed_addr):
@@ -46,17 +58,6 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         slavelist.append(nodelist[index_next])
     #clientsock.send(slavelist)
 
-def sendmsg(ip, port, message):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((ip, port))
-    try:
-        sock.sendall(message)
-        sock.settimeout(5.0)
-        response = sock.recv(1024)
-        print("Received: {}".format(response))
-    finally:
-        sock.close()
-
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
 def update_masters(clientsock, addr, data, hashed_addr):
     global groupsize
@@ -67,17 +68,18 @@ def update_masters(clientsock, addr, data, hashed_addr):
     for teller in range(0, groupsize, -1):
         index_next = index_self - teller - 1
         #create a ring
-        if index_next >= len(nodelist):
-            index_next = index_next - len(nodelist)
+        if index_next <= 0 - len(nodelist):
+            index_next = index_next + len(nodelist)
             #when we looped the ring then it can occur that we see ourselves again, stop that!
             if index_next == index_self:
                 if verbose == 1:
                     print 'We looped the entire ring' 
                 break
-        print nodelist[index_next]
-        sendmsg(nodelist[index_next][1], PORT, str(hashed_addr) + str(nodelist[index_self][1]))
+        if verbose == 1:
+            print 'Sending an update to master ' + nodelist[index_next]
         #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
-    
+        #sendmsg(nodelist[index_next][1], PORT, str(hashed_addr) + str(nodelist[index_self][1]))
+
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
