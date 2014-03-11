@@ -17,13 +17,14 @@ verbose = 0
 def usage():
 	print("Usage: decard-server -g[roup] 10 -v[erbose]\n"
 		"-g[roup] 5 	*The group size, default is 5\n"
-		"-v[ebose] 		*Verbose mode"
+		"-v[erbose] 		*Verbose mode"
 	)
 	sys.exit(2)
 
 def hello_handler(clientsock, addr, data):
 	clientsock.send('a slave list for you, use tests [PING, PORTSCAN, SSH]')
 	print addr
+	print verbose
 	if verbose == 1:
 		print 'sent: a slave list for you'
 
@@ -53,6 +54,7 @@ def message_handler(clientsock, addr):
 			update_handler(clientsock, addr, data)
 
 def main(argv):
+	global verbose
 	try:
 		opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
 	except getopt.GetoptError:
@@ -73,7 +75,8 @@ def main(argv):
 	serversock.bind(ADDR)
 	serversock.listen(5)
 	while 1:
-		print 'staying a while, and listening...'
+		if verbose == 1:
+			print 'staying a while, and listening...'
 		clientsock, addr = serversock.accept()
 		thread.start_new_thread(message_handler, (clientsock, addr))
 
