@@ -28,8 +28,10 @@ def hello_handler(clientsock, addr, data):
 	#Check if you are already in the nodelist
 	if verbose == 1:
 		print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
-	if addr[0] in nodelist:
+	for node in nodelist:
+		if addr[0] in nodelist:
 		clientsock.send('ERROR: You are already known')
+		return
 
 	#Hash your ip address and put you in the slave_list
 	if verbose == 1:
@@ -39,9 +41,8 @@ def hello_handler(clientsock, addr, data):
 	if verbose == 1:
 		for node in nodelist:
 			print node
-	
-	
-	#clientsock.send('slavelist: ' + nodelist + ' use tests: [PING, PORTSCAN, SSH]')
+	clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
+	return
 
 def bye_handler(clientsock, addr, data):
 	clientsock.send('I will remove you from the list and update the other servers')
