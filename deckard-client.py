@@ -13,7 +13,7 @@ def client(ip, port, message):
     sock.connect((ip, port))
     try:
         sock.sendall(message)
-#        sock.settimeout(2.0)
+        sock.settimeout(5.0)
         response = sock.recv(1024)
         print("Received: {}".format(response))
     finally:
