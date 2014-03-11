@@ -6,6 +6,8 @@ from time import sleep
 from socket import *
 import thread
 
+
+
 #sean is de beste
 
 def usage():
@@ -35,7 +37,7 @@ def main(argv):
 	#defaults
 	groupsize = 5
 	BUFF = 1024
-	HOST = '127.0.0.1'
+	HOST = '0.0.0.0'
 	PORT = 1337
 
 	for opt, arg in opts:
