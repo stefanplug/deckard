@@ -54,7 +54,7 @@ def update_masters(clientsock, addr, data, hashed_addr):
         print 'Updating the ' + str(groupsize) + ' nodes to be a master for ' + addr[0]
     index_self = nodelist.index((hashed_addr, addr[0]))
     for teller in range(0, groupsize, -1):
-    index_next = index_self - teller - 1
+        index_next = index_self - teller - 1
         #create a ring
         if index_next >= len(nodelist):
         index_next = index_next - len(nodelist)
