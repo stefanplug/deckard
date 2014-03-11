@@ -14,7 +14,7 @@ PORT = 1337
 
 groupsize = 5
 verbose = 0
-slavelist = []
+nodelist = []
 
 def usage():
 	print("Usage: decard-server -g[roup] 10 -v[erbose]\n"
@@ -24,6 +24,7 @@ def usage():
 	sys.exit(2)
 
 def hello_handler(clientsock, addr, data):
+	global nodelist
 	#TODO check if our list already contains you
 	
 	#Hash your ip address and put you in the slave_list
@@ -32,10 +33,10 @@ def hello_handler(clientsock, addr, data):
 	hashed_addr = hashlib.sha1()
 	hashed_addr.update(addr[0])
 	hashed_addr.digest()
-	slavelist.append((hashed_addr, addr[0]))
-	slavelist = sorted(slavelist)
-	print slavelist
-	clientsock.send('slavelist: ' + slavelist + ' use tests: [PING, PORTSCAN, SSH]')
+	nodelist.append((hashed_addr, addr[0]))
+	nodelist = sorted(slavelist)
+	print nodelist
+	clientsock.send('slavelist: ' + nodelist + ' use tests: [PING, PORTSCAN, SSH]')
 
 def bye_handler(clientsock, addr, data):
 	clientsock.send('I will remove you from the list and update the other servers')
@@ -64,8 +65,6 @@ def message_handler(clientsock, addr):
 
 def main(argv):
 	global verbose
-	global groupsize
-	global slavelist
 	try:
 		opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
 	except getopt.GetoptError:
