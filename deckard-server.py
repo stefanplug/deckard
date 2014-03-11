@@ -46,6 +46,26 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         slavelist.append(nodelist[index_next])
     #clientsock.send(slavelist)
 
+#Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
+def update_masters(clientsock, addr, data, hashed_addr):
+    global groupsize
+    global nodelist
+    if verbose == 1:
+        print 'Updating the ' + str(groupsize) + ' nodes to be a master for ' + addr[0]
+    index_self = nodelist.index((hashed_addr, addr[0]))
+    for teller in range(0, groupsize, -1):
+    index_next = index_self - teller - 1
+        #create a ring
+        if index_next >= len(nodelist):
+        index_next = index_next - len(nodelist)
+        #when we looped the ring then it can occur that we see ourselves again, stop that!
+        if index_next == index_self:
+            if verbose == 1:
+                print 'We looped the entire ring' 
+            break
+    print nodelist[index_next]
+    #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
+    
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
@@ -71,6 +91,7 @@ def hello_handler(clientsock, addr, data):
             print node
 
     assign_slaves(clientsock, addr, data, hashed_addr)
+    update_masters(clientsock, addr, data, hashed_addr)
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
@@ -104,6 +125,7 @@ def message_handler(clientsock, addr):
 
 def main(argv):
     global verbose
+    global group
     try:
         opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
     except getopt.GetoptError:
