@@ -13,7 +13,7 @@ BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
 
-groupsize = 5
+groupsize = 1
 verbose = 0
 nodelist = []
 
@@ -25,7 +25,7 @@ def usage():
     sys.exit(2)
 
 def hello_handler(clientsock, addr, data):
-    global nodelist_mutex
+    global groupsize
     global nodelist
 
     #Check if you are already in the nodelist
@@ -54,7 +54,9 @@ def hello_handler(clientsock, addr, data):
     slavelist = []
     index_self = nodelist.index((hashed_addr, addr[0]))
     print index_self
-    
+        for teller in range(0, groupsize):
+            print nodelist[index_self + teller + 1]
+
     clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
 
 def bye_handler(clientsock, addr, data):
