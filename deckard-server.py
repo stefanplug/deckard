@@ -19,7 +19,7 @@ def usage():
 	sys.exit(2)
 
 def gen_response():
-	return 'This is a Kite Shield of Eternal Verginity; +2 arcane magic defence'
+	return 'This_is_a_Kite_Shield'
 
 def handler(clientsock, addr):
 	while 1:
