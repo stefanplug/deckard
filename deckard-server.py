@@ -64,8 +64,8 @@ def hello_handler(clientsock, addr, data):
                     print 'We looped the entire ring' 
                 break
         print nodelist[index_next]
-
-    clientsock.send('slavelist: lijstje; tests: [PING, PORTSCAN, SSH]')
+        slavelist.append(nodelist[index_next])
+    clientsock.send(slavelist)
 
 def bye_handler(clientsock, addr, data):
     clientsock.send('I will remove you from the list and update the other servers')
