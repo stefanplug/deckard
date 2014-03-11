@@ -4,8 +4,8 @@ import sys
 import getopt
 from time import sleep
 from socket import *
-import thread
-import threading
+#import thread
+#import threading
 import hashlib
 
 #defaults
@@ -74,6 +74,17 @@ def message_handler(clientsock, addr):
         if 'update' in str(data):
             update_handler(clientsock, addr, data)
 
+class myThread (threading.Thread):
+    def __init__(self, threadID, name, counter):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.counter = counter
+    def run(self):
+        print "Starting " + self.name
+        print_time(self.name, self.counter, 5)
+        print "Exiting " + self.name
+
 def main(argv):
     global verbose
     try:
@@ -99,9 +110,10 @@ def main(argv):
         print 'staying a while, and listening...'
     while 1:
         clientsock, addr = serversock.accept()
+        message_handler(clientsock, addr)
         #thread.start_new_thread(message_handler, (clientsock, addr))
-        thread = threading.Thread(target=message_handler, args = (clientsock, addr))
-        thread.start()
+        #thread = threading.Thread(target=message_handler, args=(clientsock, addr))
+        #thread.start()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
