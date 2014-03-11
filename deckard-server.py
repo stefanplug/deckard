@@ -46,6 +46,17 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         slavelist.append(nodelist[index_next])
     #clientsock.send(slavelist)
 
+def sendmsg(ip, port, message):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((ip, port))
+    try:
+        sock.sendall(message)
+        sock.settimeout(5.0)
+        response = sock.recv(1024)
+        print("Received: {}".format(response))
+    finally:
+        sock.close()
+
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
 def update_masters(clientsock, addr, data, hashed_addr):
     global groupsize
@@ -64,6 +75,7 @@ def update_masters(clientsock, addr, data, hashed_addr):
                     print 'We looped the entire ring' 
                 break
         print nodelist[index_next]
+        sendmsg(nodelist[index_next][1], PORT, 'update, want yolo')
         #now update the masters by sending the new slave IP and hash, the master can then add it to thier local slave-list, re-sort the list, and pop the last one of the list
     
 #handles an incomming hello message
