@@ -103,7 +103,7 @@ def hello_handler(clientsock, addr, data):
             print node
 
     assign_slaves(clientsock, addr, data, hashed_addr)
-    #update_masters(clientsock, addr, data, hashed_addr)
+    update_masters(clientsock, addr, data, hashed_addr)
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
