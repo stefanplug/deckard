@@ -24,8 +24,29 @@ def usage():
     )
     sys.exit(2)
 
-def hello_handler(clientsock, addr, data):
+def assign_slaves(clientsock, addr, data, hashed_addr):
     global groupsize
+    global nodelist
+    #Return the folowing $groupsize$ nodes as slaves to the client
+    if verbose == 1:
+        print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
+    slavelist = []
+    index_self = nodelist.index((hashed_addr, addr[0]))
+    for teller in range(0, groupsize):
+        index_next = index_self + teller + 1
+        #create a ring
+        if index_next >= len(nodelist):
+            index_next = index_next - len(nodelist)
+            #when we looped the ring then it can occur that we see ourselves again, stop that!
+            if index_next == index_self:
+                if verbose == 1:
+                    print 'We looped the entire ring' 
+                break
+        print nodelist[index_next]
+        slavelist.append(nodelist[index_next])
+    clientsock.send(slavelist)
+
+def hello_handler(clientsock, addr, data):
     global nodelist
 
     #Check if you are already in the nodelist
@@ -48,24 +69,9 @@ def hello_handler(clientsock, addr, data):
         for node in nodelist:
             print node
 
-    #Return the folowing $groupsize$ nodes as slaves to the client
-    if verbose == 1:
-        print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
-    slavelist = []
-    index_self = nodelist.index((hashed_addr, addr[0]))
-    for teller in range(0, groupsize):
-        index_next = index_self + teller + 1
-        #create a ring
-        if index_next >= len(nodelist):
-            index_next = index_next - len(nodelist)
-            #when we looped the ring then it can occur that we see ourselves again, stop that!
-            if index_next == index_self:
-                if verbose == 1:
-                    print 'We looped the entire ring' 
-                break
-        print nodelist[index_next]
-        slavelist.append(nodelist[index_next])
-    clientsock.send(slavelist)
+    assign_slaves(clientsock, addr, data, hashed_addr)
+
+    #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
 def bye_handler(clientsock, addr, data):
     clientsock.send('I will remove you from the list and update the other servers')
