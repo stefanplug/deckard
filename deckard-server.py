@@ -23,8 +23,7 @@ def usage():
 
 def hello_handler(clientsock, addr, data):
 	clientsock.send('a slave list for you, use tests [PING, PORTSCAN, SSH]')
-	print addr
-	print verbose
+	print addr[0]
 	if verbose == 1:
 		print 'sent: a slave list for you'
 
@@ -55,6 +54,7 @@ def message_handler(clientsock, addr):
 
 def main(argv):
 	global verbose
+	global groupsize
 	try:
 		opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
 	except getopt.GetoptError:
