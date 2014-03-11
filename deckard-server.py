@@ -31,13 +31,12 @@ def sendmsg(ip, message):
     try:
         sock.connect((ip, PORT))
         sock.sendall(message)
-        sock.settimeout(5.0)
-        response = sock.recv(1024)
-        print("Received: {}".format(response))
-    except:
-        continue
-    finally:
         sock.close()
+        #sock.settimeout(5.0)
+        #response = sock.recv(1024)
+        #print("Received: {}".format(response))
+    except:
+        print 'failed to send the master an update'
 
 #Return the folowing $groupsize$ nodes as slaves to the client
 def assign_slaves(clientsock, addr, data, hashed_addr):
