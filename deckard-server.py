@@ -98,7 +98,7 @@ def main(argv):
         if verbose == 1:
             print 'staying a while, and listening...'
         clientsock, addr = serversock.accept()
-        thread.start_new_thread(message_handler, (clientsock, addr))
+        thread.start_new_threading(message_handler, (clientsock, addr))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
