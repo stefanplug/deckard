@@ -79,7 +79,7 @@ def update_masters(clientsock, addr, data, hashed_addr):
                 break
         if verbose == 1:
             print 'Sending an update to master ' + str(nodelist[index_previous][1] + ': groupsize=' + str(groupsize))
-        sendmsg(nodelist[index_previous][1], PORT, 'UPDATE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + ', ' + str(groupsize)))
+        sendmsg(nodelist[index_previous][1], 'UPDATE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + ', ' + str(groupsize)))
 
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
