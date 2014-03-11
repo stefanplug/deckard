@@ -28,7 +28,7 @@ def handler(clientsock, addr):
 		if not data: break
 		clientsock.send(gen_response())
 		print 'sent:' + repr(gen_response())
-		clientsock.close()
+#		clientsock.close()
 
 def main(argv):
 	try:
