@@ -138,7 +138,7 @@ def main(argv):
             groupsize = arg
         elif opt in ("-v", "--verbose"):
             verbose = 1
-0
+
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
