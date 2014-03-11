@@ -25,14 +25,17 @@ def usage():
     )
     sys.exit(2)
 
-def sendmsg(ip, port, message):
+def sendmsg(ip, message):
+    global PORT
     sock = socket(AF_INET, SOCK_STREAM)
     try:
-        sock.connect((ip, port))
+        sock.connect((ip, PORT))
         sock.sendall(message)
         sock.settimeout(5.0)
         response = sock.recv(1024)
         print("Received: {}".format(response))
+    except:
+        continue
     finally:
         sock.close()
 
