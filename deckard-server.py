@@ -30,9 +30,7 @@ def hello_handler(clientsock, addr, data):
 	#Hash your ip address and put you in the slave_list
 	if verbose == 1:
 		print 'Recieved a HELLO from ' + addr[0] + ', proceeding with hashing'
-	hashed_addr = hashlib.sha1()
-	hashed_addr.update(addr[0])
-	hashed_addr.digest()
+	hashed_addr = hashlib.sha1(addr[0]).hexdigest
 	nodelist.append((hashed_addr, addr[0]))
 	nodelist = sorted(nodelist)
 	print nodelist
