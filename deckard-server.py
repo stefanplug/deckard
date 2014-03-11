@@ -7,33 +7,41 @@ from socket import *
 import thread
 
 #defaults
-groupsize = 5
 BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
 
+groupsize = 5
+verbose = 0
+
 def usage():
-	print("Usage: decard-server -g[roup]\n"
-		"-g[roup] 5 *The group size, default is 5\n"
+	print("Usage: decard-server -g[roup] 10 -v[erbose]\n"
+		"-g[roup] 5 	*The group size, default is 5\n"
+		"-v[ebose] 		*Verbose mode"
 	)
 	sys.exit(2)
 
 def hello_handler(clientsock, addr, data):
-	clientsock.send('a slave list for you')
-	print 'sent: a slave list for you'
+	clientsock.send('a slave list for you, use tests [PING, PORTSCAN, SSH]')
+	print addr
+	if verbose == 1:
+		print 'sent: a slave list for you'
 
 def bye_handler(clientsock, addr, data):
 	clientsock.send('I will remove you from the list and update the other servers')
-	print 'sent: I will remove you from the list and update the other servers'
+	if verbose == 1:
+		print 'sent: I will remove you from the list and update the other servers'
 
 def update_handler(clientsock, addr, data):
 	clientsock.send('I will update stuff now')
-	print 'sent: I will update stuff now '
+	if verbose == 1:
+		print 'sent: I will update stuff now '
 
 def message_handler(clientsock, addr):
 	while 1:
 		data = clientsock.recv(BUFF)
-		print 'data:' + str(data)
+		if verbose == 1:
+			print 'data: ' + str(data)
 		if not data: break
 
 		#the recieved message decider
@@ -46,7 +54,7 @@ def message_handler(clientsock, addr):
 
 def main(argv):
 	try:
-		opts, args = getopt.getopt(argv, "g:", ["help", 'group='])
+		opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
 	except getopt.GetoptError:
 		usage()
 
@@ -55,6 +63,8 @@ def main(argv):
 			usage()
 		elif opt in ("-g", "--group"):
 			groupsize = arg
+		elif opt in ("-v", "--verbose"):
+			verbose = 1
 
 	#start being a deckard server
 	ADDR = (HOST, PORT)
@@ -65,7 +75,6 @@ def main(argv):
 	while 1:
 		print 'staying a while, and listening...'
 		clientsock, addr = serversock.accept()
-		print 'recieved a hello from:', addr
 		thread.start_new_thread(message_handler, (clientsock, addr))
 
 if __name__ == '__main__':
