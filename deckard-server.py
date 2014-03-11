@@ -7,6 +7,8 @@ from socket import *
 #import thread
 #import threading
 import hashlib
+import pickle
+import json
 
 #defaults
 BUFF = 1024
@@ -18,11 +20,24 @@ verbose = 0
 nodelist = []
 
 def usage():
-    print("Usage: decard-server -g[roup] 10 -v[erbose]\n"
+    print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5     *The group size, default is 5\n"
-        "-v[erbose]         *Verbose mode"
+        "-v[erbose]     *Verbose mode"
     )
     sys.exit(2)
+
+def sendmsg(ip, message):
+    global PORT
+    sock = socket(AF_INET, SOCK_STREAM)
+    try:
+        sock.connect((ip, PORT))
+        sock.sendall(message)
+        sock.close()
+        #sock.settimeout(5.0)
+        #response = sock.recv(1024)
+        #print("Received: {}".format(response))
+    except:
+        print 'failed to send the master an update'
 
 #Return the folowing $groupsize$ nodes as slaves to the client
 def assign_slaves(clientsock, addr, data, hashed_addr):
@@ -44,7 +59,41 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
                 break
         print nodelist[index_next]
         slavelist.append(nodelist[index_next])
-    #clientsock.send(slavelist)
+    if verbose == 1:
+        print 'Sending message: UPDATE ' + str(slavelist)
+    #clientsock.send('UPDATE ' + str(slavelist))
+    message = ['UPDATE', slavelist]
+    clientsock.send(json.dumps(message))
+
+#Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
+def update_masters(clientsock, addr, data, hashed_addr, hello):
+    global groupsize
+    global nodelist
+    if verbose == 1:
+        print 'Updating the ' + str(groupsize) + ' nodes to be a master for ' + addr[0]
+    index_self = nodelist.index((hashed_addr, addr[0]))
+    for teller in range(0, groupsize):
+        index_previous = index_self - teller - 1
+        #create a ring
+        if index_previous <= 0 - len(nodelist):
+            index_previous = index_previous + len(nodelist)
+            #when we looped the ring then it can occur that we see ourselves again, stop that!
+            if index_previous == index_self:
+                if verbose == 1:
+                    print 'We looped the entire ring' 
+                break
+        #was this a hello or goodbye?
+        if hello == 1:
+            if verbose == 1:
+                print 'Sending an update to master to ADD node: ')
+            sendmsg(nodelist[index_previous][1], 'ADD: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(groupsize)))
+        else:
+            if verbose == 1:
+                index_lastslave = index_self + groupsize
+                if index_lastslave >= len(nodelist):
+                    index_lastslave = index_lastslave - len(nodelist)
+                print 'Sending an update to master to REPLACE node: ')
+            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1])))
 
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
@@ -71,18 +120,28 @@ def hello_handler(clientsock, addr, data):
             print node
 
     assign_slaves(clientsock, addr, data, hashed_addr)
+    update_masters(clientsock, addr, data, hashed_addr, 1) #1 means that this node sent a hello
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
-#handles an incomming bye message
-def bye_handler(clientsock, addr, data):
-    clientsock.send('I will remove you from the list and update the other servers')
-    if verbose == 1:
-        print 'sent: I will remove you from the list and update the other servers'
+#handles an incomming goodbye message
+def goodbye_handler(clientsock, addr, data):
+    global nodelist
+        if verbose == 1:
+        print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
+    for node in nodelist:
+        if addr[0] in node:
+            if verbose == 1:
+                print addr[0] + ' has been found'
+            #now send an update to the masters to remove this node, and add new node: node[self_index + groupsize]  
+            update_masters(clientsock, addr, data, node[0], 0) #0 means that this node sent a goodbye
+            nodelist.pop(node)
+            return
+    clientsock.send('ERROR: you were not part of the ring, you rowdy ruffian you')
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
-    clientsock.send('I will update stuff now')
+    clientsock.send('thank you for updating')
     if verbose == 1:
         print 'sent: I will update stuff now '
 
@@ -95,15 +154,16 @@ def message_handler(clientsock, addr):
         if not data: break
 
         #the recieved message decider
-        if str(data) == 'hello':
+        if str(data) == 'hello, my friend':
             hello_handler(clientsock, addr, data)
-        if str(data) == 'bye':
-            bye_handler(clientsock, addr, data)
+        if str(data) == 'goodbye':
+            goodbye_handler(clientsock, addr, data)
         if 'update' in str(data):
             update_handler(clientsock, addr, data)
 
 def main(argv):
     global verbose
+    global groupsize
     try:
         opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
     except getopt.GetoptError:
@@ -113,7 +173,7 @@ def main(argv):
         if opt in ("-h", "--help"):
             usage()
         elif opt in ("-g", "--group"):
-            groupsize = arg
+            groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
