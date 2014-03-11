@@ -1,9 +1,12 @@
 #!/usr/bin/python
+import ConfigParser
 import socket
 import threading
 
-ip="145.100.108.228"
-port=1337
+config = ConfigParser.ConfigParser()
+config.read("client.cfg")
+ip = config.get("Client", "ip")
+port = config.getint("Client", "port")
 
 def client(ip, port, message):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,7 +14,7 @@ def client(ip, port, message):
     try:
         sock.sendall(message)
         response = sock.recv(1024)
-        print "Received: {}".format(response)
+        print("Received: {}".format(response))
     finally:
         sock.close()
 
