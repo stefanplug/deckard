@@ -71,7 +71,7 @@ def update_masters(clientsock, addr, data, hashed_addr):
         if index_previous <= 0 - len(nodelist):
             index_previous = index_previous + len(nodelist)
             #when we looped the ring then it can occur that we see ourselves again, stop that!
-            if index_next == index_self:
+            if index_previous == index_self:
                 if verbose == 1:
                     print 'We looped the entire ring' 
                 break
