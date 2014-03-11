@@ -24,10 +24,10 @@ def usage():
     )
     sys.exit(2)
 
+#Return the folowing $groupsize$ nodes as slaves to the client
 def assign_slaves(clientsock, addr, data, hashed_addr):
     global groupsize
     global nodelist
-    #Return the folowing $groupsize$ nodes as slaves to the client
     if verbose == 1:
         print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
     slavelist = []
@@ -44,8 +44,9 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
                 break
         print nodelist[index_next]
         slavelist.append(nodelist[index_next])
-    clientsock.send(slavelist)
+    #clientsock.send(slavelist)
 
+#handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
 
@@ -73,16 +74,19 @@ def hello_handler(clientsock, addr, data):
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
+#handles an incomming bye message
 def bye_handler(clientsock, addr, data):
     clientsock.send('I will remove you from the list and update the other servers')
     if verbose == 1:
         print 'sent: I will remove you from the list and update the other servers'
 
+#handles an incomming update message
 def update_handler(clientsock, addr, data):
     clientsock.send('I will update stuff now')
     if verbose == 1:
         print 'sent: I will update stuff now '
 
+#handles an incomming message
 def message_handler(clientsock, addr):
     while 1:
         data = clientsock.recv(BUFF)
