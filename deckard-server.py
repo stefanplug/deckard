@@ -53,11 +53,10 @@ def hello_handler(clientsock, addr, data):
         print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
     slavelist = []
     index_self = nodelist.index((hashed_addr, addr[0]))
-    print index_self
     for teller in range(0, groupsize):
         index_next = index_self + teller + 1
         #create a ring
-        if index_next > len(nodelist):
+        if index_next >= len(nodelist):
             index_next = index_next - len(nodelist)
             #when we looped the ring then it can occur that we see ourselves again, stop that!
             if index_next == index_self:
