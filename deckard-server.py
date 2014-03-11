@@ -4,6 +4,7 @@ import sys
 import getopt
 from time import sleep
 from socket import *
+import thread
 import threading
 import hashlib
 
@@ -94,11 +95,12 @@ def main(argv):
     serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     serversock.bind(ADDR)
     serversock.listen(5)
+    if verbose == 1:
+        print 'staying a while, and listening...'
     while 1:
-        if verbose == 1:
-            print 'staying a while, and listening...'
         clientsock, addr = serversock.accept()
-        threading.start_new_thread(message_handler, (clientsock, addr))
+        #thread.start_new_thread(message_handler, (clientsock, addr))
+        threading.Thread(target=message_handler, args = (clientsock, addr))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
