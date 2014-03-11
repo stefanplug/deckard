@@ -19,9 +19,9 @@ verbose = 0
 nodelist = []
 
 def usage():
-    print("Usage: decard-server -g[roup] 10 -v[erbose]\n"
+    print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5     *The group size, default is 5\n"
-        "-v[erbose]         *Verbose mode"
+        "-v[erbose]     *Verbose mode"
     )
     sys.exit(2)
 
