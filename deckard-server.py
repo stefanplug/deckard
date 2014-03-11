@@ -26,8 +26,8 @@ def handler(clientsock, addr):
 		data = clientsock.recv(BUFF)
 		print 'data:' + repr(data)
 		if not data: break
-		clientsock.send(gen_response())
 		if repr(data) == 'Hello':
+			clientsock.send(gen_response())
 			print 'sent:' + repr(gen_response())
 
 def main(argv):
