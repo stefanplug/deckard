@@ -58,7 +58,7 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
                 break
         print nodelist[index_next]
         slavelist.append(nodelist[index_next])
-    #clientsock.send(slavelist)
+    clientsock.send('UPDATE ' + str(slavelist))
 
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
 def update_masters(clientsock, addr, data, hashed_addr):
