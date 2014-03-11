@@ -30,7 +30,7 @@ def hello_handler(clientsock, addr, data):
 		print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
 	for node in nodelist:
 		if addr[0] in nodelist:
-		clientsock.send('ERROR: You are already known')
+			clientsock.send('ERROR: You are already known')
 		return
 
 	#Hash your ip address and put you in the slave_list
