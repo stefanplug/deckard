@@ -27,8 +27,8 @@ def usage():
 
 def sendmsg(ip, port, message):
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect((ip, port))
     try:
+        sock.connect((ip, port))
         sock.sendall(message)
         sock.settimeout(5.0)
         response = sock.recv(1024)
