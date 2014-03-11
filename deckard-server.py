@@ -30,12 +30,14 @@ def hello_handler(clientsock, addr, data):
 		print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
 	for node in nodelist:
 		if addr[0] in nodelist:
+			if verbose == 1:
+				print + addr[0] + ' is already known, aborting'
 			clientsock.send('ERROR: You are already known')
-		return
+			return
 
 	#Hash your ip address and put you in the slave_list
 	if verbose == 1:
-		print 'Recieved a HELLO from ' + addr[0] + ', proceeding with hashing'
+		print addr[0] + ' is a new node, proceeding with hashing'
 	nodelist.append((hashlib.sha1(addr[0]).hexdigest(), addr[0]))
 	nodelist = sorted(nodelist)
 	if verbose == 1:
