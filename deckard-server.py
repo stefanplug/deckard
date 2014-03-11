@@ -100,7 +100,8 @@ def main(argv):
     while 1:
         clientsock, addr = serversock.accept()
         #thread.start_new_thread(message_handler, (clientsock, addr))
-        threading.Thread(target=message_handler, args = (clientsock, addr))
+        thread = threading.Thread(target=message_handler, args = (clientsock, addr))
+        thread.start()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
