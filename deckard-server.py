@@ -9,6 +9,7 @@ import pickle
 import json
 import MySQLdb
 import time
+import random
 
 #defaults
 BUFF = 1024
@@ -207,9 +208,11 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
+    salt = random()
     generate_nodelist('yolo2')
     generate_slavelists()
 
+    exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
