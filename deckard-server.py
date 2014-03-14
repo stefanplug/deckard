@@ -19,8 +19,8 @@ cursor = db.cursor()
 
 groupsize = 1
 verbose = 0
-nodelist = []
-slavelists = []
+nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets
+slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
@@ -147,7 +147,7 @@ def main(argv):
     #create a hashed nodelist and sort the list
     for node in data:
         hashed_addr = hashlib.sha1(node[1]).hexdigest()
-        nodelist.append((hashed_addr, node[2]))
+        nodelist.append((hashed_addr, node[2], 0))
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
