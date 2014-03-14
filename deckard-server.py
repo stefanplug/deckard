@@ -21,6 +21,7 @@ cursor = db.cursor()
 groupsize = 1
 verbose = 0
 nodelist = []
+slavelists = []
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
@@ -128,6 +129,7 @@ def hello_handler(clientsock, addr, data):
                 #update the database that we have seen him
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
                 db.commit()
+                assign_slaves(clientsock, addr, data, hashed_addr)
     if usedb == 0:
         #Hash the new node's ip address and put it in the node_list
         if verbose == 1:
@@ -138,8 +140,7 @@ def hello_handler(clientsock, addr, data):
         if verbose == 1:
             for node in nodelist:
                 print node
-
-    #assign_slaves(clientsock, addr, data, hashed_addr)
+        assign_slaves(clientsock, addr, data, hashed_addr)
     #update_masters(clientsock, addr, data, hashed_addr, 1) #1 means that this node sent a hello
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
@@ -193,6 +194,7 @@ def main(argv):
     global verbose
     global groupsize
     global nodelist
+    global slavelists
     global usedb
     global cursor
     try:
@@ -223,8 +225,24 @@ def main(argv):
         if verbose == 1:
             for node in nodelist:
                 print node
-    print str(int(time.time()))
 
+        #now generate the slave lists
+        for (index_self, node) in enumerate(nodelist):
+            if verbose == 1:
+                print 'Assigning the following ' + str(groupsize) + ' nodes to ' + node[1]
+            for teller in range(0, groupsize):
+                index_next = index_self + teller + 1
+                #create a ring
+                if index_next >= len(nodelist):
+                    index_next = index_next - len(nodelist)
+                #when we looped the ring then it can occur that we see ourselves again, stop that!
+                if index_next == index_self:
+                    if verbose == 1:
+                        print 'We looped the entire ring' 
+                    break
+        print nodelist[index_next]
+        slavelists[index_self].append(nodelist[index_next])
+    exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
