@@ -46,13 +46,12 @@ def sendmsg(ip, message):
 def hello_handler(clientsock, addr, data):
     global nodelist
     global slavelists
-    global usedb
     global db
     global cursor
 
     #Check if you are already in the nodelist
     if verbose == 1:
-        print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
+        print 'Recieved a HELLO from ' + addr[0] + ', checking if we know this host'
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
             if verbose == 1:
@@ -70,6 +69,12 @@ def hello_handler(clientsock, addr, data):
             #message = {'UPDATE': slavelist}
             #message = json.dumps(message)
             #clientsock.send(json.dumps(message))
+            return 1
+    
+    #the check must have been unsuccessfull because the for loop ended
+    if verbose == 1:
+        print addr[0] + ' is an unknown host, ignore!'
+    return 0
 
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
@@ -77,7 +82,7 @@ def goodbye_handler(clientsock, addr, data):
     global db
     global cursor
     if verbose == 1:
-        print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
+        print 'Recieved a GOODBYE from ' + addr[0] + ', checking if this is a known host'
     for node in nodelist:
         if addr[0] in node:
             if verbose == 1:  
@@ -86,7 +91,12 @@ def goodbye_handler(clientsock, addr, data):
             #update the database that we have seen him
             cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
             db.commit()
-    clientsock.send('ERROR: you are not part of the ring, you rowdy ruffian you')
+            return 1
+
+    #the check must have been unsuccessfull because the for loop ended
+    if verbose == 1:
+        print addr[0] + ' is an unknown host, ignore!'
+    return 0
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
@@ -115,10 +125,9 @@ def main(argv):
     global groupsize
     global nodelist
     global slavelists
-    global usedb
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose'])
+        opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
     except getopt.GetoptError:
         usage()
 
