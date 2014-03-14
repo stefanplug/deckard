@@ -207,7 +207,7 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
-    generate_nodelist('yolo')
+    generate_nodelist('yolo2')
     generate_slavelists()
 
     #start being a deckard server
