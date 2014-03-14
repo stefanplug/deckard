@@ -49,6 +49,7 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
     slavelist = []
     index_self = nodelist.index((hashed_addr, addr[0]))
+    print(groupsize)
     for teller in range(0, groupsize):
         index_next = index_self + teller + 1
         #create a ring
@@ -64,7 +65,11 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
     if verbose == 1:
         print 'Sending message: UPDATE ' + str(slavelist)
     #clientsock.send('UPDATE ' + str(slavelist))
-    message = ['UPDATE', slavelist]
+    print(slavelist)
+    message = {'UPDATE': slavelist}
+    print(message)
+    message = json.dumps(message)
+    print(message)
     clientsock.send(json.dumps(message))
 
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
@@ -156,7 +161,7 @@ def message_handler(clientsock, addr):
         if not data: break
 
         #the recieved message decider
-        if str(data) == 'hello, my friend':
+        if str(data) == 'hello':
             hello_handler(clientsock, addr, data)
         if str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data)
@@ -175,7 +180,7 @@ def main(argv):
         if opt in ("-h", "--help"):
             usage()
         elif opt in ("-g", "--group"):
-            groupsize = arg
+            groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
