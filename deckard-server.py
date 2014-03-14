@@ -72,7 +72,6 @@ def hello_handler(clientsock, addr, data):
 
             #now update the node list to show that this node has been seen by us
             node[2] = 1
-            print node
             return 1
     
     #the check must have been unsuccessfull because the for loop ended
@@ -95,6 +94,8 @@ def goodbye_handler(clientsock, addr, data):
             #update the database that we have seen him
             cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
             db.commit()
+            #now update the node list to show that this node has left
+            node[2] = 0
             return 1
 
     #the check must have been unsuccessfull because the for loop ended
@@ -104,8 +105,32 @@ def goodbye_handler(clientsock, addr, data):
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
+    global nodelist
+    global db
+    global curso
     if verbose == 1:
-        print ' '
+        print 'Recieved an UPDATE from ' + addr[0] + ', checking if we know this host'
+    for node in nodelist:
+        if addr[0] in node:
+            if verbose == 1:  
+                print addr[0] + ' is a known host, lets see what it has to say'
+            #update the database with this nodes findings
+            seen = 1 #temp, get from update massage
+            slaveaddr = 145.100.108.232 #temp, get from update message
+            if verbose == 1:
+                print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time()))
+            cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time())))
+            db.commit()
+            # Now lets see if this host needs a new slave list
+            if node[2] == 0:
+                if verbose == 1:  
+                    print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
+                hello_handler(clientsock, addr, data)
+
+    #the check must have been unsuccessfull because the for loop ended
+    if verbose == 1:
+        print addr[0] + ' is an unknown host, ignore!'
+    return 0
 
 #handles an incomming message
 def message_handler(clientsock, addr):
