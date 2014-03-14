@@ -19,7 +19,7 @@ cursor = db.cursor()
 
 groupsize = 1
 verbose = 0
-nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets
+nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
 slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
 
 def usage():
@@ -69,6 +69,10 @@ def hello_handler(clientsock, addr, data):
             #message = {'UPDATE': slavelist}
             #message = json.dumps(message)
             #clientsock.send(json.dumps(message))
+
+            #now update the node list to show that this node has been seen by us
+            node[2] = 1
+            print node
             return 1
     
     #the check must have been unsuccessfull because the for loop ended
@@ -100,9 +104,8 @@ def goodbye_handler(clientsock, addr, data):
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
-    clientsock.send('thank you for updating')
     if verbose == 1:
-        print 'sent: I will update stuff now '
+        print ' '
 
 #handles an incomming message
 def message_handler(clientsock, addr):
