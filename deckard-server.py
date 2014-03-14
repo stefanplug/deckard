@@ -226,7 +226,7 @@ def main(argv):
             end_time = time.time() + timer
         else:
             clientsock, addr = serversock.accept()
-            message_handler(clientsock, addrm, nodelist, slavelists)
+            message_handler(clientsock, addr, nodelist, slavelists)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
