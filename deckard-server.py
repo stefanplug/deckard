@@ -18,7 +18,7 @@ PORT = 1337
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
-timer = 10
+timer = 3600
 groupsize = 5
 verbose = 0
 #nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
