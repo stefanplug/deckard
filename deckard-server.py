@@ -229,6 +229,7 @@ def main(argv):
             if verbose == 1:
                 print 'Assigning the following ' + str(groupsize) + ' nodes to ' + node[1]
             for teller in range(0, groupsize):
+                slavelist = []
                 index_next = index_self + teller + 1
                 #create a ring
                 if index_next >= len(nodelist):
@@ -239,7 +240,8 @@ def main(argv):
                         print 'We looped the entire ring' 
                     break
                 print nodelist[index_next]
-                slavelists[index_self].append(nodelist[index_next])
+                slavelist.append(nodelist[index_nest])
+            slavelists.append(slavelist)
     exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
