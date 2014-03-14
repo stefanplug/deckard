@@ -126,6 +126,7 @@ def update_handler(clientsock, addr, data):
                 if verbose == 1:  
                     print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
                 hello_handler(clientsock, addr, data)
+            return 1
 
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
@@ -208,9 +209,9 @@ def main(argv):
     serversock.listen(5)
     if verbose == 1:
         print 'staying a while, and listening...'
-    while 1:
-        clientsock, addr = serversock.accept()
-        message_handler(clientsock, addr)
+    #while 1:
+    clientsock, addr = serversock.accept()
+    message_handler(clientsock, addr)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
