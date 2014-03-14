@@ -18,6 +18,7 @@ PORT = 1337
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
+timer = 10
 groupsize = 5
 verbose = 0
 nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
@@ -25,8 +26,9 @@ slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
-        "-g[roup] 5     *The group size, default is 5\n"
-        "-v[erbose]     *Verbose mode"
+        "-g[roup] 5         *The group size, default is 5\n"
+        "-v[erbose]         *Verbose mode"
+        "-t[imer] seconds    *The time between hashes, default is 3600 (1 hour)"
     )
     sys.exit(2)
 
@@ -208,10 +210,7 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
-    generate_nodelist(random.random())
-    generate_slavelists()
-
-    exit()
+    
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
@@ -220,9 +219,17 @@ def main(argv):
     serversock.listen(5)
     if verbose == 1:
         print 'staying a while, and listening...'
+    end_time = 0
     while 1:
-        clientsock, addr = serversock.accept()
-        message_handler(clientsock, addr)
+        if time() < end_time:
+            if verbose == 1:
+                print 'The time has come to assign new slaves'
+            generate_nodelist(random.random())
+            generate_slavelists()
+            end_time = time() + timer
+        else:
+            clientsock, addr = serversock.accept()
+            message_handler(clientsock, addr)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
