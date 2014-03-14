@@ -211,7 +211,7 @@ def main(argv):
         if verbose == 1:
             for node in nodelist:
                 print node
-    print str(int(time.time())
+    print str(int(time.time()))
 
     #start being a deckard server
     ADDR = (HOST, PORT)
