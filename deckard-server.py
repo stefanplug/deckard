@@ -15,6 +15,7 @@ import MySQLdb
 BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
+usedb = 0
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
@@ -26,6 +27,7 @@ def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5     *The group size, default is 5\n"
         "-v[erbose]     *Verbose mode"
+        "-d[atabase]    *Use a database (db config is in the script)"
     )
     sys.exit(2)
 
@@ -172,8 +174,9 @@ def message_handler(clientsock, addr):
 def main(argv):
     global verbose
     global groupsize
+    global usedb
     try:
-        opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
+        opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose', 'database'])
     except getopt.GetoptError:
         usage()
 
@@ -184,11 +187,14 @@ def main(argv):
             groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
+        elif opt in ("-d", "--database"):
+            usedb = 1
 
     # SQL TEST
-    cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
-    data = cursor.fetchall()
-    print data
+    if usedb == 1:
+        cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
+        data = cursor.fetchall()
+        print data
     
     #start being a deckard server
     ADDR = (HOST, PORT)
