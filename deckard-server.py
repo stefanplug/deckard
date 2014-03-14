@@ -4,12 +4,11 @@ import sys
 import getopt
 from time import sleep
 from socket import *
-#import thread
-#import threading
 import hashlib
 import pickle
 import json
 import MySQLdb
+import time
 
 #defaults
 BUFF = 1024
@@ -108,29 +107,38 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
+    global usedb
 
     #Check if you are already in the nodelist
     if verbose == 1:
         print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
     for node in nodelist:
         if addr[0] in node:
-            if verbose == 1:
-                print addr[0] + ' is already known, aborting'
-            clientsock.send('ERROR: You are already known')
-            return
+            if usedb == 0:
+                if verbose == 1:
+                    print addr[0] + ' is already known, aborting'
+                clientsock.send('ERROR: You are already known')
+                return
+            else:
+                if verbose == 1:
+                    print addr[0] + ' is a known host, We will allow him'
+                    print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time()))
+                #update the database that we have seen him
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
 
-    #Hash the new node's ip address and put it in the node_list
-    if verbose == 1:
-        print addr[0] + ' is a new node, proceeding with hashing'
-    hashed_addr = hashlib.sha1(addr[0]).hexdigest()
-    nodelist.append((hashed_addr, addr[0]))
-    nodelist = sorted(nodelist)
-    if verbose == 1:
-        for node in nodelist:
-            print node
+    if usedb == 0:
+        #Hash the new node's ip address and put it in the node_list
+        if verbose == 1:
+            print addr[0] + ' is a new node, proceeding with hashing'
+        hashed_addr = hashlib.sha1(addr[0]).hexdigest()
+        nodelist.append((hashed_addr, addr[0]))
+        nodelist = sorted(nodelist)
+        if verbose == 1:
+            for node in nodelist:
+                print node
 
-    assign_slaves(clientsock, addr, data, hashed_addr)
-    update_masters(clientsock, addr, data, hashed_addr, 1) #1 means that this node sent a hello
+    #assign_slaves(clientsock, addr, data, hashed_addr)
+    #update_masters(clientsock, addr, data, hashed_addr, 1) #1 means that this node sent a hello
 
     #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
 
@@ -174,6 +182,7 @@ def message_handler(clientsock, addr):
 def main(argv):
     global verbose
     global groupsize
+    global nodelist
     global usedb
     try:
         opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose', 'database'])
@@ -190,12 +199,21 @@ def main(argv):
         elif opt in ("-d", "--database"):
             usedb = 1
 
-    # SQL TEST
+    # When using a database we can already fill in our nodelist
     if usedb == 1:
-        cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
+        if verbose == 1:
+                print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
+        cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
         data = cursor.fetchall()
-        print data[0][2]
-    
+        for node in data:
+            hashed_addr = hashlib.sha1(node[1]).hexdigest()
+            nodelist.append((hashed_addr, node[2]))
+        nodelist = sorted(nodelist)
+        if verbose == 1:
+            for node in nodelist:
+                print node
+    print str(int(time.time()))
+
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
@@ -207,9 +225,6 @@ def main(argv):
     while 1:
         clientsock, addr = serversock.accept()
         message_handler(clientsock, addr)
-        #thread.start_new_thread(message_handler, (clientsock, addr))
-        #thread = threading.Thread(target=message_handler, args=(clientsock, addr))
-        #thread.start()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
