@@ -129,8 +129,9 @@ def hello_handler(clientsock, addr, data):
                 db.commit()
                 #look up this nodes slaves
                 print 'this nodes slaves are:'
-                for slaves in slavelist[index_self]
+                for slaves in slavelist[index_self]:
                     print slaves
+
     if usedb == 0:
         #Hash the new node's ip address and put it in the node_list
         if verbose == 1:
