@@ -85,15 +85,15 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
         #was this a hello or goodbye?
         if hello == 1:
             if verbose == 1:
-                print 'Sending an update to master to ADD node: ')
+                print 'Sending an update to master to ADD node: '
             sendmsg(nodelist[index_previous][1], 'ADD: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(groupsize)))
         else:
             if verbose == 1:
                 index_lastslave = index_self + groupsize
                 if index_lastslave >= len(nodelist):
                     index_lastslave = index_lastslave - len(nodelist)
-                print 'Sending an update to master to REPLACE node: ')
-            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1])))
+                print 'Sending an update to master to REPLACE node: '
+            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1]))))
 
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
@@ -127,7 +127,7 @@ def hello_handler(clientsock, addr, data):
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
     global nodelist
-        if verbose == 1:
+    if verbose == 1:
         print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
     for node in nodelist:
         if addr[0] in node:
@@ -173,6 +173,7 @@ def main(argv):
         if opt in ("-h", "--help"):
             usage()
         elif opt in ("-g", "--group"):
+            groupsize = arg
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
