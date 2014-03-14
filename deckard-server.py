@@ -239,7 +239,7 @@ def main(argv):
                         print 'We looped the entire ring' 
                     break
                 print nodelist[index_next]
-                slavelists[index_self][teller] = (nodelist[index_next])
+                slavelists[index_self][teller] = nodelist[index_next]
     exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
