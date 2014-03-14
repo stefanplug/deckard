@@ -195,7 +195,7 @@ def main(argv):
     if usedb == 1:
         if verbose == 1:
                 print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-        cursor.execute('SELECT * FROM machines WHERE deckardserver <> 1')
+        cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
         data = cursor.fetchall()
         print data
         for node in data:
