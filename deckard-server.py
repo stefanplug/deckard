@@ -217,9 +217,12 @@ def main(argv):
     serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     serversock.bind(ADDR)
     serversock.listen(5)
+
+    generate_nodelist(random.random())
+    generate_slavelists()
+    end_time = time.time() + timer
     if verbose == 1:
         print 'staying a while, and listening...'
-    end_time = 0
     while 1:
         if time.time() < end_time:
             if verbose == 1:
