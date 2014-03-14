@@ -190,7 +190,7 @@ def message_handler(clientsock, addr):
             hello_handler(clientsock, addr, data)
         if str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data)
-        if 'update'0 in str(data):
+        if 'update' in str(data):
             update_handler(clientsock, addr, data)
 
 def main(argv):
