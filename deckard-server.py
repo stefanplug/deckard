@@ -11,6 +11,10 @@ import MySQLdb
 import time
 import random
 
+#nodelist and slavelists makeup:
+#nodelist[Ha5H, 192.168.1.1, 0]   #(hashed IPv4, IPv4, hash_epoch) When node send an update and the hash_epoch is 0 then it will get a new slave list from the server
+#slavelists[[Master IP1, Slave1 IP, Slave2 IP, ......, SlaveN IP], [Master IP2, Slave1 IP, Slave2 IP, ......, SlaveN IP]] # a list of lists conaining a master IP with its assigned slave ips
+
 #defaults
 BUFF = 1024
 HOST = '0.0.0.0'
@@ -21,13 +25,11 @@ cursor = db.cursor()
 timer = 3600
 groupsize = 5
 verbose = 0
-#nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
-#slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5         *The group size, default is 5\n"
-        "-v[erbose]         *Verbose mode"
+        "-v[erbose]         *Verbose mode\n"
         "-t[imer] seconds    *The time between hashes, default is 3600 (1 hour)"
     )
     sys.exit(2)
@@ -192,17 +194,20 @@ def main(argv):
     global groupsize
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
+        opts, args = getopt.getopt(argv, "hvg:t:", ['help', 'verbose', 'group=', 'time='])
     except getopt.GetoptError:
         usage()
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
-        elif opt in ("-g", "--group"):
-            groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
+        elif opt in ("-g", "--group"):
+            groupsize = int(arg)
+        elif opt in ("-t", "--timer"):
+            timer = int(arg)
+
 
     
     #start being a deckard server
