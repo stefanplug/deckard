@@ -14,7 +14,6 @@ import time
 BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
-usedb = 0
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
@@ -27,7 +26,6 @@ def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5     *The group size, default is 5\n"
         "-v[erbose]     *Verbose mode"
-        "-d[atabase]    *Use a database (db config is in the script)"
     )
     sys.exit(2)
 
@@ -115,37 +113,17 @@ def hello_handler(clientsock, addr, data):
         print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
-            if usedb == 0:
-                if verbose == 1:
-                    print addr[0] + ' is already known, aborting'
-                clientsock.send('ERROR: You are already known')
-                return
-            else:
-                if verbose == 1:
-                    print addr[0] + ' is a known host, We will allow him'
-                    print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time()))
-                #update the database that we have seen him
-                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
-                db.commit()
-                #look up this nodes slaves
-                print 'this nodes slaves are:'
-                for slaves in slavelists[index_self]:
-                    print slaves
-
-    if usedb == 0:
-        #Hash the new node's ip address and put it in the node_list
-        if verbose == 1:
-            print addr[0] + ' is a new node, proceeding with hashing'
-        hashed_addr = hashlib.sha1(addr[0]).hexdigest()
-        nodelist.append((hashed_addr, addr[0]))
-        nodelist = sorted(nodelist)
-        if verbose == 1:
-            for node in nodelist:
-                print node
-        assign_slaves(clientsock, addr, data, hashed_addr)
-    #update_masters(clientsock, addr, data, hashed_addr, 1) #1 means that this node sent a hello
-
-    #Send an update to the $groupsize$ nodes before the new node to inform them that they have a new slave
+            if verbose == 1:
+                print addr[0] + ' is a known host, We will allow him'
+                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time()))
+            #update the database that we have seen him
+            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
+            db.commit()
+            #look up this nodes slaves
+            print 'this nodes slaves are:'
+            for slaves in slavelists[index_self]:
+                print slaves
+            #SEND SLAVELIST?
 
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
@@ -156,19 +134,13 @@ def goodbye_handler(clientsock, addr, data):
         print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
     for node in nodelist:
         if addr[0] in node:
-            if verbose == 1:
-                print addr[0] + ' has been found'
-            #now send an update to the masters to remove this node, and add new node: node[self_index + groupsize]  
-            if usedb == 1:
+            if verbose == 1:  
                 print addr[0] + ' is a known host, We will set him to unactive'
                 print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
-                #update the database that we have seen him
-                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
-                db.commit()
-            #update_masters(clientsock, addr, data, node[0], 0) #0 means that this node sent a goodbye
-            #nodelist.pop(node)
-            return
-    clientsock.send('ERROR: you were not part of the ring, you rowdy ruffian you')
+            #update the database that we have seen him
+            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
+            db.commit()
+    clientsock.send('ERROR: you are not part of the ring, you rowdy ruffian you')
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
@@ -215,38 +187,37 @@ def main(argv):
             usedb = 1
 
     # When using a database we can already fill in our nodelist
-    if usedb == 1:
-        if verbose == 1:
-                print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-        cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
-        data = cursor.fetchall()
-        for node in data:
-            hashed_addr = hashlib.sha1(node[1]).hexdigest()
-            nodelist.append((hashed_addr, node[2]))
-        nodelist = sorted(nodelist)
-        if verbose == 1:
-            for node in nodelist:
-                print node
+    if verbose == 1:
+        print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
+    cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
+    data = cursor.fetchall()
+    for node in data:
+        hashed_addr = hashlib.sha1(node[1]).hexdigest()
+        nodelist.append((hashed_addr, node[2]))
+    nodelist = sorted(nodelist)
+    if verbose == 1:
+        for node in nodelist:
+            print node
 
         #now generate the slave lists
-        for (index_self, node) in enumerate(nodelist):
-            slavelist = [node[1]]
-            for teller in range(0, groupsize):
-                index_next = index_self + teller + 1
-                #create a ring
-                if index_next >= len(nodelist):
-                    index_next = index_next - len(nodelist)
-                #when we looped the ring then it can occur that we see ourselves again, stop that!
-                if index_next == index_self:
-                    break
-                #print nodelist[index_next]
-                slavelist.append(nodelist[index_next][1])
-            slavelists.append(slavelist)
+    for (index_self, node) in enumerate(nodelist):
+        slavelist = [node[1]]
+        for teller in range(0, groupsize):
+            index_next = index_self + teller + 1
+            #create a ring
+            if index_next >= len(nodelist):
+                index_next = index_next - len(nodelist)
+            #when we looped the ring then it can occur that we see ourselves again, stop that!
+            if index_next == index_self:
+                break
+            #print nodelist[index_next]
+            slavelist.append(nodelist[index_next][1])
+        slavelists.append(slavelist)
 
-        if verbose == 1:
-            print 'We came up with the following slave list:' 
-            for slavelist in slavelists:
-                print slavelist
+    if verbose == 1:
+        print 'We came up with the following slave list:' 
+        for slavelist in slavelists:
+            print slavelist
 
     #start being a deckard server
     ADDR = (HOST, PORT)
