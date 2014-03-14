@@ -42,7 +42,7 @@ def sendmsg(ip, message):
     except:
         print 'failed to send the master an update'
 
-def generate_nodelist(salt)
+def generate_nodelist(salt):
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
@@ -58,7 +58,7 @@ def generate_nodelist(salt)
             print node
     return 0
 
-def generate_slavelists()
+def generate_slavelists():
     for (index_self, node) in enumerate(nodelist):
         slavelist = [node[1]]
         for teller in range(0, groupsize):
