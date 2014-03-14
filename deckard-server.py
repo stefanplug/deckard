@@ -47,6 +47,8 @@ def sendmsg(ip, message):
 
 def generate_nodelist(salt):
     global nodelist
+    del nodelist
+    
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
@@ -188,7 +190,7 @@ def message_handler(clientsock, addr):
             hello_handler(clientsock, addr, data)
         if str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data)
-        if 'update' in str(data):
+        if 'update'0 in str(data):
             update_handler(clientsock, addr, data)
 
 def main(argv):
