@@ -17,7 +17,7 @@ PORT = 1337
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
-groupsize = 1
+groupsize = 5
 verbose = 0
 nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
 slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
@@ -41,6 +41,42 @@ def sendmsg(ip, message):
         #print("Received: {}".format(response))
     except:
         print 'failed to send the master an update'
+
+def generate_nodelist(salt)
+    #get the node list form the database
+    if verbose == 1:
+        print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
+    cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
+    data = cursor.fetchall()
+    #create a hashed nodelist and sort the list
+    for node in data:
+        hashed_addr = hashlib.sha1(salt + node[1]).hexdigest()
+        nodelist.append([hashed_addr, node[2], 0])
+    nodelist = sorted(nodelist)
+    if verbose == 1:
+        for node in nodelist:
+            print node
+    return 0
+
+def generate_slavelists()
+    for (index_self, node) in enumerate(nodelist):
+        slavelist = [node[1]]
+        for teller in range(0, groupsize):
+            index_next = index_self + teller + 1
+            #create a ring
+            if index_next >= len(nodelist):
+                index_next = index_next - len(nodelist)
+            #when we looped the ring then it can occur that we see ourselves again, stop that!
+            if index_next == index_self:
+                break
+            slavelist.append(nodelist[index_next][1])
+        slavelists.append(slavelist)
+
+    if verbose == 1:
+        print 'We came up with the following slave list:' 
+        for slavelist in slavelists:
+            print slavelist
+    return 0
 
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
@@ -72,12 +108,12 @@ def hello_handler(clientsock, addr, data):
 
             #now update the node list to show that this node has been seen by us
             node[2] = 1
-            return 1
+            return 0
     
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
         print addr[0] + ' is an unknown host, ignore!'
-    return 0
+    return 1
 
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
@@ -96,12 +132,12 @@ def goodbye_handler(clientsock, addr, data):
             db.commit()
             #now update the node list to show that this node has left
             node[2] = 0
-            return 1
+            return 0
 
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
         print addr[0] + ' is an unknown host, ignore!'
-    return 0
+    return 1
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data):
@@ -126,12 +162,12 @@ def update_handler(clientsock, addr, data):
                 if verbose == 1:  
                     print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
                 hello_handler(clientsock, addr, data)
-            return 1
+            return 0
 
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
         print addr[0] + ' is an unknown host, ignore!'
-    return 0
+    return 1
 
 #handles an incomming message
 def message_handler(clientsock, addr):
@@ -168,38 +204,8 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
-    #get the node list form the database
-    if verbose == 1:
-        print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-    cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
-    data = cursor.fetchall()
-    #create a hashed nodelist and sort the list
-    for node in data:
-        hashed_addr = hashlib.sha1(node[1]).hexdigest()
-        nodelist.append([hashed_addr, node[2], 0])
-    nodelist = sorted(nodelist)
-    if verbose == 1:
-        for node in nodelist:
-            print node
-
-    #now generate the slave lists
-    for (index_self, node) in enumerate(nodelist):
-        slavelist = [node[1]]
-        for teller in range(0, groupsize):
-            index_next = index_self + teller + 1
-            #create a ring
-            if index_next >= len(nodelist):
-                index_next = index_next - len(nodelist)
-            #when we looped the ring then it can occur that we see ourselves again, stop that!
-            if index_next == index_self:
-                break
-            slavelist.append(nodelist[index_next][1])
-        slavelists.append(slavelist)
-
-    if verbose == 1:
-        print 'We came up with the following slave list:' 
-        for slavelist in slavelists:
-            print slavelist
+    generate_nodelist('yolo')
+    generate_slavelists()
 
     #start being a deckard server
     ADDR = (HOST, PORT)
