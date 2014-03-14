@@ -105,6 +105,7 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
+    global slavelists
     global usedb
     global db
     global cursor
@@ -112,7 +113,7 @@ def hello_handler(clientsock, addr, data):
     #Check if you are already in the nodelist
     if verbose == 1:
         print 'Recieved a HELLO from ' + addr[0] + ', checking if we already know this host'
-    for node in nodelist:
+    for index_self, node in enumerate(nodelist):
         if addr[0] in node:
             if usedb == 0:
                 if verbose == 1:
@@ -126,7 +127,10 @@ def hello_handler(clientsock, addr, data):
                 #update the database that we have seen him
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
                 db.commit()
-                assign_slaves(clientsock, addr, data, hashed_addr)
+                #look up this nodes slaves
+                print 'this nodes slaves are:'
+                for slaves in slavelist[index_self]
+                    print slaves
     if usedb == 0:
         #Hash the new node's ip address and put it in the node_list
         if verbose == 1:
@@ -243,7 +247,6 @@ def main(argv):
             for slavelist in slavelists:
                 print slavelist
 
-    exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
