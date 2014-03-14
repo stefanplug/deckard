@@ -106,7 +106,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
             print 'this nodes slaves are:'
             for slaves in slavelists[index_self]:
                 print slaves
-            #SEND SLAVELIST?
+            #SEND SLAVELIST!
             #starting to send update the dictionary encoded in a JSON
             #message = {'UPDATE': slavelist}
             #message = json.dumps(message)
@@ -147,7 +147,7 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
 #handles an incomming update message
 def update_handler(clientsock, addr, data, nodelist, slavelists):
     global db
-    global curso
+    global cursor
     if verbose == 1:
         print 'Recieved an UPDATE from ' + addr[0] + ', checking if we know this host'
     for node in nodelist:
@@ -188,6 +188,7 @@ def message_handler(clientsock, addr, nodelist, slavelists):
             goodbye_handler(clientsock, addr, data, nodelist, slavelists)
         if 'update' in str(data):
             update_handler(clientsock, addr, data, nodelist, slavelists)
+            #when we have processed the update we can now use the data to update the UP/DOWN status?
 
 def main(argv):
     global verbose
@@ -208,8 +209,6 @@ def main(argv):
         elif opt in ("-t", "--timer"):
             timer = int(arg)
 
-
-    
     #start being a deckard server
     ADDR = (HOST, PORT)
     serversock = socket(AF_INET, SOCK_STREAM)
