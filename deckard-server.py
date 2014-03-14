@@ -187,7 +187,7 @@ def main(argv):
 
     # SQL TEST
     cursor.execute('SELECT * FROM machines')
-    data = cursor.fetchone()
+    data = cursor.fetchall()
     print data
     
     #start being a deckard server
