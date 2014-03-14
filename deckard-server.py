@@ -226,8 +226,6 @@ def main(argv):
         #now generate the slave lists
         for (index_self, node) in enumerate(nodelist):
             slavelist = [node[1]]
-            if verbose == 1:
-                print 'Assigning the following ' + str(groupsize) + ' nodes to ' + node[1]
             for teller in range(0, groupsize):
                 index_next = index_self + teller + 1
                 #create a ring
@@ -235,16 +233,15 @@ def main(argv):
                     index_next = index_next - len(nodelist)
                 #when we looped the ring then it can occur that we see ourselves again, stop that!
                 if index_next == index_self:
-                    if verbose == 1:
-                        print 'We looped the entire ring' 
                     break
                 #print nodelist[index_next]
                 slavelist.append(nodelist[index_next][1])
-
             slavelists.append(slavelist)
-        
-        for slavelist in slavelists:
-            print slavelist
+
+        if verbose == 1:
+            print 'We came up with the following slave list:' 
+            for slavelist in slavelists:
+                print slavelist
 
     exit()
     #start being a deckard server
