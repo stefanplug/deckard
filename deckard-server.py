@@ -208,8 +208,7 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
-    salt = random()
-    generate_nodelist('yolo2')
+    generate_nodelist(random())
     generate_slavelists()
 
     exit()
