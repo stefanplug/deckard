@@ -21,8 +21,8 @@ cursor = db.cursor()
 timer = 10
 groupsize = 5
 verbose = 0
-nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
-slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
+#nodelist = []   #(hashed IPv4, IPv4, recieved a HELLO this lifetime?) lifetime resets when this service resets, we can use this to send a node the entire new slave when this service reloads list when it just sends us an update
+#slavelists = [] #(Master IP, Slave1 IP, Slave2 IP, ......, SlaveN IP)
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
@@ -46,8 +46,7 @@ def sendmsg(ip, message):
         print 'failed to send the master an update'
 
 def generate_nodelist(salt):
-    global nodelist
-    del nodelist
+    nodelist = []
     
     #get the node list form the database
     if verbose == 1:
@@ -62,11 +61,10 @@ def generate_nodelist(salt):
     if verbose == 1:
         for node in nodelist:
             print node
-    return 0
+    return nodelist
 
-def generate_slavelists():
-    global nodelist
-    global slavelists
+def generate_slavelists(nodelist):
+    slavelists = []
     for (index_self, node) in enumerate(nodelist):
         slavelist = [node[1]]
         for teller in range(0, groupsize):
@@ -84,12 +82,10 @@ def generate_slavelists():
         print 'We came up with the following slave list:' 
         for slavelist in slavelists:
             print slavelist
-    return 0
+    return slavelists
 
 #handles an incomming hello message
-def hello_handler(clientsock, addr, data):
-    global nodelist
-    global slavelists
+def hello_handler(clientsock, addr, data, nodelist, slavelists):
     global db
     global cursor
 
@@ -124,8 +120,7 @@ def hello_handler(clientsock, addr, data):
     return 1
 
 #handles an incomming goodbye message
-def goodbye_handler(clientsock, addr, data):
-    global nodelist
+def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
     global db
     global cursor
     if verbose == 1:
@@ -148,8 +143,7 @@ def goodbye_handler(clientsock, addr, data):
     return 1
 
 #handles an incomming update message
-def update_handler(clientsock, addr, data):
-    global nodelist
+def update_handler(clientsock, addr, data, nodelist, slavelists):
     global db
     global curso
     if verbose == 1:
@@ -169,7 +163,7 @@ def update_handler(clientsock, addr, data):
             if node[2] == 0:
                 if verbose == 1:  
                     print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
-                hello_handler(clientsock, addr, data)
+                hello_handler(clientsock, addr, data, nodelist, slavelists)
             return 0
 
     #the check must have been unsuccessfull because the for loop ended
@@ -178,7 +172,7 @@ def update_handler(clientsock, addr, data):
     return 1
 
 #handles an incomming message
-def message_handler(clientsock, addr):
+def message_handler(clientsock, addr, nodelist, slavelists):
     while 1:
         data = clientsock.recv(BUFF)
         if verbose == 1:
@@ -187,17 +181,15 @@ def message_handler(clientsock, addr):
 
         #the recieved message decider
         if str(data) == 'hello':
-            hello_handler(clientsock, addr, data)
+            hello_handler(clientsock, addr, data, nodelist, slavelsists)
         if str(data) == 'goodbye':
-            goodbye_handler(clientsock, addr, data)
+            goodbye_handler(clientsock, addr, data, nodelist, slavelsists)
         if 'update' in str(data):
-            update_handler(clientsock, addr, data)
+            update_handler(clientsock, addr, data, nodelist, slavelsists)
 
 def main(argv):
     global verbose
     global groupsize
-    global nodelist
-    global slavelists
     global cursor
     try:
         opts, args = getopt.getopt(argv, "hg:v", ['help', 'group=', 'verbose'])
@@ -220,8 +212,8 @@ def main(argv):
     serversock.bind(ADDR)
     serversock.listen(5)
 
-    generate_nodelist(random.random())
-    generate_slavelists()
+    nodelist = generate_nodelist(random.random())
+    slavelists = generate_slavelists(nodelist)
     end_time = time.time() + timer
     if verbose == 1:
         print 'staying a while, and listening...'
@@ -229,12 +221,12 @@ def main(argv):
         if time.time() > end_time:
             if verbose == 1:
                 print 'The time has come to assign new slaves'
-            generate_nodelist(random.random())
-            generate_slavelists()
+            nodelist = generate_nodelist(random.random())
+            slavelists = generate_slavelists(nodelist)
             end_time = time.time() + timer
         else:
             clientsock, addr = serversock.accept()
-            message_handler(clientsock, addr)
+            message_handler(clientsock, addrm, nodelist, slavelists)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
