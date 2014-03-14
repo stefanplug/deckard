@@ -115,8 +115,8 @@ def update_handler(clientsock, addr, data):
             if verbose == 1:  
                 print addr[0] + ' is a known host, lets see what it has to say'
             #update the database with this nodes findings
-            seen = 1 #temp, get from update massage
-            slaveaddr = 145.100.108.232 #temp, get from update message
+            seen = '1' #temp, get from update massage
+            slaveaddr = '145.100.108.232' #temp, get from update message
             if verbose == 1:
                 print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time()))
             cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time())))
