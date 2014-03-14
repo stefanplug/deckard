@@ -240,7 +240,7 @@ def main(argv):
                         print 'We looped the entire ring' 
                     break
                 print nodelist[index_next]
-                slavelist.append(nodelist[index_nest])
+                slavelist.append(nodelist[index_next])
             slavelists.append(slavelist)
     exit()
     #start being a deckard server
