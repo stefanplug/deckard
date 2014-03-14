@@ -239,7 +239,7 @@ def main(argv):
                     if verbose == 1:
                         print 'We looped the entire ring' 
                     break
-                print nodelist[index_next]
+                #print nodelist[index_next]
                 slavelist.append(nodelist[index_next][1])
                 print slavelist
             slavelists.append(slavelist)
