@@ -42,64 +42,6 @@ def sendmsg(ip, message):
     except:
         print 'failed to send the master an update'
 
-#Return the folowing $groupsize$ nodes as slaves to the client
-def assign_slaves(clientsock, addr, data, hashed_addr):
-    global groupsize
-    global nodelist
-    if verbose == 1:
-        print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
-    slavelist = []
-    index_self = nodelist.index((hashed_addr, addr[0]))
-    print(groupsize)
-    for teller in range(0, groupsize):
-        index_next = index_self + teller + 1
-        #create a ring
-        if index_next >= len(nodelist):
-            index_next = index_next - len(nodelist)
-            #when we looped the ring then it can occur that we see ourselves again, stop that!
-            if index_next == index_self:
-                if verbose == 1:
-                    print 'We looped the entire ring' 
-                break
-        print nodelist[index_next]
-        slavelist.append(nodelist[index_next])
-    if verbose == 1:
-        print 'Sending message: UPDATE ' + str(slavelist)
-    #starting to send update the dictionary encoded in a JSON
-    message = {'UPDATE': slavelist}
-    message = json.dumps(message)
-    clientsock.send(json.dumps(message))
-
-#Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
-def update_masters(clientsock, addr, data, hashed_addr, hello):
-    global groupsize
-    global nodelist
-    if verbose == 1:
-        print 'Updating the ' + str(groupsize) + ' nodes to be a master for ' + addr[0]
-    index_self = nodelist.index((hashed_addr, addr[0]))
-    for teller in range(0, groupsize):
-        index_previous = index_self - teller - 1
-        #create a ring
-        if index_previous <= 0 - len(nodelist):
-            index_previous = index_previous + len(nodelist)
-            #when we looped the ring then it can occur that we see ourselves again, stop that!
-            if index_previous == index_self:
-                if verbose == 1:
-                    print 'We looped the entire ring' 
-                break
-        #was this a hello or goodbye?
-        if hello == 1:
-            if verbose == 1:
-                print 'Sending an update to master to ADD node: '
-            sendmsg(nodelist[index_previous][1], 'ADD: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(groupsize)))
-        else:
-            if verbose == 1:
-                index_lastslave = index_self + groupsize
-                if index_lastslave >= len(nodelist):
-                    index_lastslave = index_lastslave - len(nodelist)
-                print 'Sending an update to master to REPLACE node: '
-            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1]))))
-
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
     global nodelist
@@ -124,6 +66,10 @@ def hello_handler(clientsock, addr, data):
             for slaves in slavelists[index_self]:
                 print slaves
             #SEND SLAVELIST?
+            #starting to send update the dictionary encoded in a JSON
+            #message = {'UPDATE': slavelist}
+            #message = json.dumps(message)
+            #clientsock.send(json.dumps(message))
 
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
@@ -172,7 +118,7 @@ def main(argv):
     global usedb
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose', 'database'])
+        opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose'])
     except getopt.GetoptError:
         usage()
 
@@ -183,14 +129,13 @@ def main(argv):
             groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
-        elif opt in ("-d", "--database"):
-            usedb = 1
 
-    # When using a database we can already fill in our nodelist
+    #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
     cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
     data = cursor.fetchall()
+    #create a hashed nodelist and sort the list
     for node in data:
         hashed_addr = hashlib.sha1(node[1]).hexdigest()
         nodelist.append((hashed_addr, node[2]))
@@ -199,7 +144,7 @@ def main(argv):
         for node in nodelist:
             print node
 
-        #now generate the slave lists
+    #now generate the slave lists
     for (index_self, node) in enumerate(nodelist):
         slavelist = [node[1]]
         for teller in range(0, groupsize):
@@ -210,7 +155,6 @@ def main(argv):
             #when we looped the ring then it can occur that we see ourselves again, stop that!
             if index_next == index_self:
                 break
-            #print nodelist[index_next]
             slavelist.append(nodelist[index_next][1])
         slavelists.append(slavelist)
 
