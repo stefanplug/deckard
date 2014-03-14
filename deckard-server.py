@@ -123,7 +123,7 @@ def hello_handler(clientsock, addr, data):
                 if verbose == 1:
                     print addr[0] + ' is a known host, We will allow him'
                 #update the database that we have seen him
-                cursor.execute('REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4=' + addr[0] + '), active=1, tstamp=' + time.gmtime(0))
+                cursor.execute('REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4=' + addr[0] + '), active=1, tstamp=' + str(time.gmtime(0)))
 
     if usedb == 0:
         #Hash the new node's ip address and put it in the node_list
