@@ -197,7 +197,6 @@ def main(argv):
                 print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
         cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
         data = cursor.fetchall()
-        print data
         for node in data:
             hashed_addr = hashlib.sha1(node[1]).hexdigest()
             nodelist.append((hashed_addr, node[2]))
