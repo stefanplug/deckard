@@ -156,7 +156,7 @@ def goodbye_handler(clientsock, addr, data):
             #now send an update to the masters to remove this node, and add new node: node[self_index + groupsize]  
             if usedb == 1:
                 print addr[0] + ' is a known host, We will set him to unactive'
-                    print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
+                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
                 #update the database that we have seen him
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
 
