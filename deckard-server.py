@@ -240,7 +240,8 @@ def main(argv):
                         print 'We looped the entire ring' 
                     break
                 print nodelist[index_next]
-                slavelist.append(nodelist[index_next])
+                slavelist.append(nodelist[index_next][1])
+                print slavelist
             slavelists.append(slavelist)
         
         for slavelist in slavelists:
