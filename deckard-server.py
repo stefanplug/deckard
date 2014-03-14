@@ -224,7 +224,7 @@ def main(argv):
     if verbose == 1:
         print 'staying a while, and listening...'
     while 1:
-        if time.time() < end_time:
+        if time.time() > end_time:
             if verbose == 1:
                 print 'The time has come to assign new slaves'
             generate_nodelist(random.random())
