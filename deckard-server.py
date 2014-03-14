@@ -225,6 +225,7 @@ def main(argv):
 
         #now generate the slave lists
         for (index_self, node) in enumerate(nodelist):
+            slavelist.append
             if verbose == 1:
                 print 'Assigning the following ' + str(groupsize) + ' nodes to ' + node[1]
             for teller in range(0, groupsize):
