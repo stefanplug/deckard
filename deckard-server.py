@@ -190,11 +190,17 @@ def main(argv):
         elif opt in ("-d", "--database"):
             usedb = 1
 
-    # SQL TEST
+    # When using a database we can already fill in our nodelist
     if usedb == 1:
-        cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
+        if verbose == 1:
+                print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
+        cursor.execute('SELECT * FROM machines WHERE deckardserver IS NOT 1')
         data = cursor.fetchall()
-        print data[0][2]
+        for node in data:
+            hashed_addr = hashlib.sha1(node[1]).hexdigest()
+            nodelist.append((hashed_addr, node[2]))
+            nodelist = sorted(nodelist)
+        print nodelist
     
     #start being a deckard server
     ADDR = (HOST, PORT)
