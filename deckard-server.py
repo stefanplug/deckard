@@ -173,7 +173,6 @@ def main(argv):
         if opt in ("-h", "--help"):
             usage()
         elif opt in ("-g", "--group"):
-            groupsize = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
