@@ -221,12 +221,12 @@ def main(argv):
         print 'staying a while, and listening...'
     end_time = 0
     while 1:
-        if time() < end_time:
+        if time.time() < end_time:
             if verbose == 1:
                 print 'The time has come to assign new slaves'
             generate_nodelist(random.random())
             generate_slavelists()
-            end_time = time() + timer
+            end_time = time.time() + timer
         else:
             clientsock, addr = serversock.accept()
             message_handler(clientsock, addr)
