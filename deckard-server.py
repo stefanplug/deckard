@@ -186,7 +186,7 @@ def main(argv):
             verbose = 1
 
     # SQL TEST
-    cursor.execute('SELECT * FROM machines')
+    cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
     data = cursor.fetchall()
     print data
     
