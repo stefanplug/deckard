@@ -21,7 +21,7 @@ cursor = db.cursor()
 groupsize = 1
 verbose = 0
 nodelist = []
-slavelists = [[]]
+slavelists = []
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
@@ -225,7 +225,7 @@ def main(argv):
 
         #now generate the slave lists
         for (index_self, node) in enumerate(nodelist):
-            slavelists.append(node[1])
+            slavelist = [node[1]]
             if verbose == 1:
                 print 'Assigning the following ' + str(groupsize) + ' nodes to ' + node[1]
             for teller in range(0, groupsize):
@@ -239,13 +239,12 @@ def main(argv):
                         print 'We looped the entire ring' 
                     break
                 #print nodelist[index_next]
-                slavelists[index_self].append(nodelist[index_next][1])
-            print slavelists
+                slavelist.append(nodelist[index_next][1])
 
-          #  slavelists.append(slavelist)
+            slavelists.append(slavelist)
         
-        #for slavelist in slavelists:
-         #   print slavelist
+        for slavelist in slavelists:
+            print slavelist
 
     exit()
     #start being a deckard server
