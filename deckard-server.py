@@ -9,11 +9,13 @@ from socket import *
 import hashlib
 import pickle
 import json
+import MySQLdb
 
 #defaults
 BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
+db = MySQLdb.conect("localhost", 'root', 'geefmefietsterug', 'nlnog') 
 
 groupsize = 1
 verbose = 0
