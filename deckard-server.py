@@ -199,11 +199,12 @@ def main(argv):
         data = cursor.fetchall()
         print data
         for node in data:
-            print node
             hashed_addr = hashlib.sha1(node[1]).hexdigest()
             nodelist.append((hashed_addr, node[2]))
         nodelist = sorted(nodelist)
-        print nodelist
+        if verbose == 1:
+            for node in nodelist:
+                print node
     
     #start being a deckard server
     ADDR = (HOST, PORT)
