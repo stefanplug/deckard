@@ -174,6 +174,7 @@ def message_handler(clientsock, addr):
 def main(argv):
     global verbose
     global groupsize
+    global nodelist
     global usedb
     try:
         opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose', 'database'])
