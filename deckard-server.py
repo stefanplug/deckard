@@ -47,6 +47,7 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
         print 'Assigning the following ' + str(groupsize) + ' nodes to ' + addr[0]
     slavelist = []
     index_self = nodelist.index((hashed_addr, addr[0]))
+    print(groupsize)
     for teller in range(0, groupsize):
         index_next = index_self + teller + 1
         #create a ring
@@ -62,7 +63,11 @@ def assign_slaves(clientsock, addr, data, hashed_addr):
     if verbose == 1:
         print 'Sending message: UPDATE ' + str(slavelist)
     #clientsock.send('UPDATE ' + str(slavelist))
-    message = ['UPDATE', slavelist]
+    print(slavelist)
+    message = {'UPDATE': slavelist}
+    print(message)
+    message = json.dumps(message)
+    print(message)
     clientsock.send(json.dumps(message))
 
 #Return the folowing $groupsize$ nodes as masters to the client, and update their slave lists
@@ -85,15 +90,15 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
         #was this a hello or goodbye?
         if hello == 1:
             if verbose == 1:
-                print 'Sending an update to master to ADD node: ')
+                print 'Sending an update to master to ADD node: '
             sendmsg(nodelist[index_previous][1], 'ADD: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(groupsize)))
         else:
             if verbose == 1:
                 index_lastslave = index_self + groupsize
                 if index_lastslave >= len(nodelist):
                     index_lastslave = index_lastslave - len(nodelist)
-                print 'Sending an update to master to REPLACE node: ')
-            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1])))
+                print 'Sending an update to master to REPLACE node: '
+            sendmsg(nodelist[index_previous][1], 'REPLACE: ' + str(hashed_addr) + ', ' + str(nodelist[index_self][1] + '; ' + str(nodelist[index_lastslave][0] + ', ' + str(nodelist[index_lastslave][1]))))
 
 #handles an incomming hello message
 def hello_handler(clientsock, addr, data):
@@ -127,7 +132,7 @@ def hello_handler(clientsock, addr, data):
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
     global nodelist
-        if verbose == 1:
+    if verbose == 1:
         print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
     for node in nodelist:
         if addr[0] in node:
@@ -154,7 +159,7 @@ def message_handler(clientsock, addr):
         if not data: break
 
         #the recieved message decider
-        if str(data) == 'hello, my friend':
+        if str(data) == 'hello':
             hello_handler(clientsock, addr, data)
         if str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data)
