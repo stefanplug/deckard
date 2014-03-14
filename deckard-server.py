@@ -208,7 +208,7 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
 
-    generate_nodelist(random())
+    generate_nodelist(random.random())
     generate_slavelists()
 
     exit()
