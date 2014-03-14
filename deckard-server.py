@@ -15,7 +15,7 @@ import MySQLdb
 BUFF = 1024
 HOST = '0.0.0.0'
 PORT = 1337
-db = MySQLdb.connect("localhost", 'root', 'geefmefietsterug', 'nlnog') 
+db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
 groupsize = 1
@@ -186,7 +186,7 @@ def main(argv):
             verbose = 1
 
     # SQL TEST
-    cursor.execute("SELECT * FROM machines)
+    cursor.execute('SELECT * FROM machines')
     data = cursor.fetchone()
     print data
     
