@@ -152,8 +152,14 @@ def goodbye_handler(clientsock, addr, data):
             if verbose == 1:
                 print addr[0] + ' has been found'
             #now send an update to the masters to remove this node, and add new node: node[self_index + groupsize]  
-            update_masters(clientsock, addr, data, node[0], 0) #0 means that this node sent a goodbye
-            nodelist.pop(node)
+            if usedb == 1:
+                print addr[0] + ' is a known host, We will set him to unactive'
+                    print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
+                #update the database that we have seen him
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
+
+            #update_masters(clientsock, addr, data, node[0], 0) #0 means that this node sent a goodbye
+            #nodelist.pop(node)
             return
     clientsock.send('ERROR: you were not part of the ring, you rowdy ruffian you')
 
