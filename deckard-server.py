@@ -108,6 +108,7 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
 def hello_handler(clientsock, addr, data):
     global nodelist
     global usedb
+    global cursor
 
     #Check if you are already in the nodelist
     if verbose == 1:
@@ -145,6 +146,7 @@ def hello_handler(clientsock, addr, data):
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
     global nodelist
+    global cursor
     if verbose == 1:
         print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
     for node in nodelist:
@@ -190,6 +192,7 @@ def main(argv):
     global groupsize
     global nodelist
     global usedb
+    global cursor
     try:
         opts, args = getopt.getopt(argv, "hg:vd", ['help', 'group=', 'verbose', 'database'])
     except getopt.GetoptError:
