@@ -181,11 +181,11 @@ def message_handler(clientsock, addr, nodelist, slavelists):
 
         #the recieved message decider
         if str(data) == 'hello':
-            hello_handler(clientsock, addr, data, nodelist, slavelsists)
+            hello_handler(clientsock, addr, data, nodelist, slavelists)
         if str(data) == 'goodbye':
-            goodbye_handler(clientsock, addr, data, nodelist, slavelsists)
+            goodbye_handler(clientsock, addr, data, nodelist, slavelists)
         if 'update' in str(data):
-            update_handler(clientsock, addr, data, nodelist, slavelsists)
+            update_handler(clientsock, addr, data, nodelist, slavelists)
 
 def main(argv):
     global verbose
