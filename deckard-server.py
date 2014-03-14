@@ -150,7 +150,7 @@ def main(argv):
     #create a hashed nodelist and sort the list
     for node in data:
         hashed_addr = hashlib.sha1(node[1]).hexdigest()
-        nodelist.append([hashed_addr, node[2], 0)])
+        nodelist.append([hashed_addr, node[2], 0])
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
