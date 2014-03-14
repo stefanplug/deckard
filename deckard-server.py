@@ -108,6 +108,7 @@ def update_masters(clientsock, addr, data, hashed_addr, hello):
 def hello_handler(clientsock, addr, data):
     global nodelist
     global usedb
+    global db
     global cursor
 
     #Check if you are already in the nodelist
@@ -126,7 +127,7 @@ def hello_handler(clientsock, addr, data):
                     print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time()))
                 #update the database that we have seen him
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
-
+                db.commit()
     if usedb == 0:
         #Hash the new node's ip address and put it in the node_list
         if verbose == 1:
@@ -146,6 +147,7 @@ def hello_handler(clientsock, addr, data):
 #handles an incomming goodbye message
 def goodbye_handler(clientsock, addr, data):
     global nodelist
+    global db
     global cursor
     if verbose == 1:
         print 'Recieved a GOODBYE from ' + addr[0] + ', checking if we actually know this host'
@@ -159,7 +161,7 @@ def goodbye_handler(clientsock, addr, data):
                 print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
                 #update the database that we have seen him
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
-
+                db.commit()
             #update_masters(clientsock, addr, data, node[0], 0) #0 means that this node sent a goodbye
             #nodelist.pop(node)
             return
