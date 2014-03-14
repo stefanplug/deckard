@@ -18,9 +18,14 @@ def client(ip, port, message):
         sock.sendall(message)
         sock.settimeout(5.0)
         response = sock.recv(1024)
-        print(json.JSONDecoder(response))
-        for b in a:
-            print(b)
+        if "ERROR" in response:
+            print(response)
+        if "UPDATE" in response:
+            print(response)
+            parsed = json.loads(response)
+            print(parsed)
+#        for b in response:
+#            print(b)
         #print("Received: {}".format(response))
         
     finally:
