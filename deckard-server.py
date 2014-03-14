@@ -242,7 +242,10 @@ def main(argv):
                 print nodelist[index_next]
                 slavelist.append(nodelist[index_next])
             slavelists.append(slavelist)
-        print slavelists
+        
+        for slavelist in slavelists
+            print slavelist
+            
     exit()
     #start being a deckard server
     ADDR = (HOST, PORT)
