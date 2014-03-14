@@ -194,7 +194,7 @@ def main(argv):
     if usedb == 1:
         if verbose == 1:
                 print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-        cursor.execute('SELECT * FROM machines WHERE deckardserver IS NOT 1')
+        cursor.execute('SELECT * FROM machines WHERE deckardserver <> 1')
         data = cursor.fetchall()
         for node in data:
             hashed_addr = hashlib.sha1(node[1]).hexdigest()
