@@ -243,7 +243,7 @@ def main(argv):
                 slavelist.append(nodelist[index_next])
             slavelists.append(slavelist)
         
-        for slavelist in slavelists
+        for slavelist in slavelists:
             print slavelist
             
     exit()
