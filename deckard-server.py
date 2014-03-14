@@ -194,7 +194,7 @@ def main(argv):
     if usedb == 1:
         cursor.execute('SELECT * FROM machines WHERE deckardserver = 1')
         data = cursor.fetchall()
-        print data
+        print data[0][2]
     
     #start being a deckard server
     ADDR = (HOST, PORT)
