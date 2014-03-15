@@ -119,7 +119,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
-            message = {'UPDATE': true, 'SLAVES': slavelists[index_self], 'TTL': ttl}
+            message = {'UPDATE': 'true', 'SLAVES': slavelists[index_self], 'TTL': ttl}
             message = json.dumps(message)
             clientsock.send(json.dumps(message))
 
@@ -229,9 +229,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
 #handles an incomming message
 def message_handler(clientsock, addr, nodelist, slavelists, protocol):
-#    while 1:
     data = clientsock.recv(BUFF)
-    #data.convert('unicode')
     if verbose == 1:
         print(data)
     if not data: 
@@ -239,7 +237,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     #the recieved message decider
     if data == b'hello':
         hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-    elif data == 'goodbye':
+    elif data == b'goodbye':
         goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     elif 'update' in data:
         update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
