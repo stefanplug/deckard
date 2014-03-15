@@ -43,7 +43,7 @@ def generate_nodelist(salt):
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
+    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = ')
     data = cursor.fetchall()
     #create a hashed nodelist and sort the list
     for node in data:
@@ -99,8 +99,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
                     print slaves
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
-            mesg = (slavelists[index_self], ttl)
-            message = {'UPDATE': mesg}
+            message = {'UPDATE': slavelists[index_self], 'TTL': ttl}
             message = json.dumps(message)
             clientsock.send(json.dumps(message))
 
@@ -180,8 +179,6 @@ def message_handler(clientsock, addr, nodelist, slavelists):
             goodbye_handler(clientsock, addr, data, nodelist, slavelists)
         if 'update' in str(data):
             update_handler(clientsock, addr, data, nodelist, slavelists)
-            #when we have processed the update we can now use the data to update the UP/DOWN status?
-            #maybe create a PANIC group?
 
 def main(argv):
     global verbose
