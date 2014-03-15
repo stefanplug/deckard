@@ -40,11 +40,10 @@ def ttl_formula(timer):
 
 def generate_nodelist(salt):
     nodelist = []
-    
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-    cursor.execute('SELECT * FROM machines WHERE deckardserver IS NULL OR deckardserver = 0')
+    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
     data = cursor.fetchall()
     #create a hashed nodelist and sort the list
     for node in data:
@@ -89,9 +88,9 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
         if addr[0] in node:
             if verbose == 1:
                 print addr[0] + ' is a known host, We will allow him'
-                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time()))
+                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=1, tstamp=" + str(int(time.time()))
             #update the database that we have seen him
-            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
+            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=1, tstamp=" + str(int(time.time())))
             db.commit()
             #look up this nodes slaves
             if verbose == 1:
@@ -124,9 +123,9 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
         if addr[0] in node:
             if verbose == 1:  
                 print addr[0] + ' is a known host, We will set him to unactive'
-                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time()))
+                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time()))
             #update the database that we have seen him
-            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=0, tstamp=" + str(int(time.time())))
+            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time())))
             db.commit()
             #now update the node list to show that this node has left
             node[2] = 0
@@ -151,8 +150,8 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
             seen = '1' #temp, get from update massage
             slaveaddr = '145.100.108.232' #temp, get from update message
             if verbose == 1:
-                print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time()))
-            cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), active=" + seen + ", tstamp=" + str(int(time.time())))
+                print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time()))
+            cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time())))
             db.commit()
             # Now lets see if this host needs a new slave list
             if node[2] == 0:
