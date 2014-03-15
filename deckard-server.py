@@ -275,7 +275,8 @@ def main(argv):
         serversock = socket(AF_INET, SOCK_STREAM)
     else:
         ADDR = (V6HOST, PORT)
-        serversock = socket(AF_INET6, SOCK_STREAM, IPV6_V6ONLY)
+        serversock = socket(AF_INET6, SOCK_STREAM)
+        serversock.setsockopt(IPPROTO_IPV6, IPV6_V6ONLY, 0)
     serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     serversock.bind(ADDR)
     serversock.listen(5)
