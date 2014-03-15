@@ -65,9 +65,9 @@ def generate_nodelist(salt, protocol):
     salt = salt.encode('utf-8')
     #create a hashed nodelist and sort the list
     for node in data:
-        node-utf = node[0]
-        node-utf = node-utf.encode('utf-8')
-        hashed_addr = hashlib.sha1(salt + node-utf8).hexdigest()
+        #nodeutf = node[0]
+        #nodeutf = node-utf.encode('utf-8')
+        hashed_addr = hashlib.sha1(salt + node[0].encode('utf-8')).hexdigest()
         #hashed_addr = hashlib.sha1(salt).hexdigest
         nodelist.append([hashed_addr, str(node[0]), 0])
     nodelist = sorted(nodelist)
