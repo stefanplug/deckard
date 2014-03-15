@@ -219,7 +219,7 @@ def main(argv):
     global groupsize
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hvg:t:", ['help', 'verbose', 'group=', 'timer=', 'stale='])
+        opts, args = getopt.getopt(argv, "hvg:t:s:", ['help', 'verbose', 'group=', 'timer=', 'stale='])
     except getopt.GetoptError:
         usage()
 
