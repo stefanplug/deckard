@@ -49,7 +49,7 @@ def stale_record_formula(timer):
     stale_time = time.time() - oldage
     return stale_time
 
-def generate_nodelist(salt):
+def generate_nodelist(salt, protocol):
     nodelist = []
     #get the node list form the database
     if verbose == 1:
@@ -91,7 +91,7 @@ def generate_slavelists(nodelist):
     return slavelists
 
 #handles an incomming hello message
-def hello_handler(clientsock, addr, data, nodelist, slavelists):
+def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
 
@@ -130,7 +130,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
     return 1
 
 #handles an incom0ming goodbye message
-def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
+def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
     if verbose == 1:
@@ -155,7 +155,7 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
     return 1
 
 #handles an incomming update message
-def update_handler(clientsock, addr, data, nodelist, slavelists):
+def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
     if verbose == 1:
@@ -225,7 +225,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
     return 1
 
 #handles an incomming message
-def message_handler(clientsock, addr, nodelist, slavelists):
+def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     while 1:
         data = clientsock.recv(BUFF)
         if verbose == 1:
@@ -234,16 +234,17 @@ def message_handler(clientsock, addr, nodelist, slavelists):
 
         #the recieved message decider
         if str(data) == 'hello':
-            hello_handler(clientsock, addr, data, nodelist, slavelists)
+            hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
         if str(data) == 'goodbye':
-            goodbye_handler(clientsock, addr, data, nodelist, slavelists)
+            goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
         if 'update' in str(data):
-            update_handler(clientsock, addr, data, nodelist, slavelists)
+            update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
 
 def main(argv):
     global verbose
     global groupsize
     global cursor
+    global protocol
     try:
         opts, args = getopt.getopt(argv, "hp:g:t:s:v", ['help', 'protocol=', 'group=', 'timer=', 'stale=', 'verbose'])
     except getopt.GetoptError:
@@ -279,7 +280,7 @@ def main(argv):
     serversock.bind(ADDR)
     serversock.listen(5)
 
-    nodelist = generate_nodelist(random.random())
+    nodelist = generate_nodelist(random.random(), protocol)
     slavelists = generate_slavelists(nodelist)
     end_time = time.time() + timer
     if verbose == 1:
@@ -288,12 +289,12 @@ def main(argv):
         if time.time() > end_time:
             if verbose == 1:
                 print 'The time has come to assign new slaves'
-            nodelist = generate_nodelist(random.random())
+            nodelist = generate_nodelist(random.random(), protocol)
             slavelists = generate_slavelists(nodelist)
             end_time = time.time() + timer
         else:
             clientsock, addr = serversock.accept()
-            message_handler(clientsock, addr, nodelist, slavelists)
+            message_handler(clientsock, addr, nodelist, slavelists, protocol)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
