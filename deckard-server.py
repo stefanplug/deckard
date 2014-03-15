@@ -40,7 +40,7 @@ def ttl_formula(timer):
     timer = timer / 2 + 1
     return timer
 
-def stale_record_formula(timer)
+def stale_record_formula(timer):
     global stale_multiplier
     oldage = timer * stale_multiplier
     stale_time = time.time() - oldage
