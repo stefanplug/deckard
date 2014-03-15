@@ -22,7 +22,7 @@ V4HOST = '0.0.0.0'
 V6HOST = '::'
 PORT = 1337
 #db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
-db = mysql.connector.connect(user='root', pasword='geefmefietsterug', host='localhost', database='nlnog') 
+db = mysql.connector.connect(user='root', password='geefmefietsterug', host='localhost', database='nlnog') 
 cursor = db.cursor()
 
 protocol = 0
