@@ -230,7 +230,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 #handles an incomming message
 def message_handler(clientsock, addr, nodelist, slavelists, protocol):
 #    while 1:
-    data = str(clientsock.recv(BUFF))
+    data = clientsock.recv(BUFF)
     #data.convert('unicode')
     if verbose == 1:
         print('data: ' + data)
