@@ -25,18 +25,26 @@ cursor = db.cursor()
 timer = 3600
 groupsize = 5
 verbose = 0
+stale_multiplier = 5    #h(if time = 10 seconds and the multiplier = 5, then any record older than 50 seconds is stale)
 
 def usage():
     print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
         "-g[roup] 5         *The group size, default is 5\n"
         "-v[erbose]         *Verbose mode\n"
-        "-t[imer] seconds    *The time between hashes, default is 3600 (1 hour)"
+        "-t[imer] seconds   *The time between hashes, default is 3600 (1 hour)\n"
+        "-s[tale] 5         *The numer of timer times before update data is considered stale"
     )
     sys.exit(2)
 
 def ttl_formula(timer):
-    timer / 2 + 1
+    timer = timer / 2 + 1
     return timer
+
+def stale_record_formula(timer)
+    global stale_multiplier
+    oldage = timer * stale_multiplier
+    stale_time = time.time() - oldage
+    return stale_time
 
 def generate_nodelist(salt):
     nodelist = []
@@ -97,6 +105,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
                 print 'this nodes slaves are:'
                 for slaves in slavelists[index_self]:
                     print slaves
+
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
             message = {'UPDATE': slavelists[index_self], 'TTL': ttl}
@@ -152,7 +161,32 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
                 print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time()))
             cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time())))
             db.commit()
-            # Now lets see if this host needs a new slave list
+
+            #update the slave's status 
+            if verbose == 1:
+                print 'See if the supdate has changed anything for the slaves status'
+            stale_record_time = stale_record_formula(timer)
+            cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
+            active_count = cursor.fetchall()
+            cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
+            inactive_count = cursor.fetchall()
+            if inactive_count == 0 AND active_count > 0:
+                if verbose == 1:
+                    print 'This slave was found to be active'
+                cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
+                db.commit()
+            elif inactive_count > 0 AND active_count == 0:
+            if verbose == 1:
+                    print 'This slave was found to be inactive'
+                cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
+                db.commit()
+            else:
+                if verbose == 1:
+                    print 'This slave was found to be active for some nodes, but inactive for others'
+                cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
+                db.commit()
+            
+            #lets see if this host needs a new slave list
             if node[2] == 0:
                 if verbose == 1:  
                     print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
@@ -185,7 +219,7 @@ def main(argv):
     global groupsize
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hvg:t:", ['help', 'verbose', 'group=', 'time='])
+        opts, args = getopt.getopt(argv, "hvg:t:", ['help', 'verbose', 'group=', 'timer=', 'stale='])
     except getopt.GetoptError:
         usage()
 
@@ -198,6 +232,8 @@ def main(argv):
             groupsize = int(arg)
         elif opt in ("-t", "--timer"):
             timer = int(arg)
+        elif opt in ("-s", "--stale"):
+            stale_multiplier = int(arg)
 
     #start being a deckard server
     ADDR = (HOST, PORT)
