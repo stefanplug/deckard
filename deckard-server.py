@@ -236,7 +236,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
         if not data: break
 
         #the recieved message decider
-        if str(data) == 'hello':
+        if str(data).convert('utf-8') == 'hello':
             hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
         elif str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
@@ -244,7 +244,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
             update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
         else:
             print('Recieved an unknown packet type, ignore!')
-        
+
 def main(argv):
     global verbose
     global groupsize
