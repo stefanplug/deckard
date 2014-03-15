@@ -43,7 +43,7 @@ def generate_nodelist(salt):
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = ')
+    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
     data = cursor.fetchall()
     #create a hashed nodelist and sort the list
     for node in data:
