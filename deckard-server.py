@@ -234,7 +234,8 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     #data.convert('unicode')
     if verbose == 1:
         print('data: ' + data)
-    if not data: break
+    if not data: 
+        return
     #the recieved message decider
     if data == 'hello':
         hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
