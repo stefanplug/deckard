@@ -121,7 +121,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             ttl = ttl_formula(timer)
             message = {'UPDATE': 'true', 'SLAVES': slavelists[index_self], 'TTL': ttl}
             message = json.dumps(message)
-            clientsock.send(json.dumps(message))
+            clientsock.send('b' + json.dumps(message))
 
             #now update the node list to show that this node has been seen by us
             node[2] = 1
