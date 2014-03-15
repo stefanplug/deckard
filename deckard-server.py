@@ -229,22 +229,21 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
 #handles an incomming message
 def message_handler(clientsock, addr, nodelist, slavelists, protocol):
-    while 1:
-        data = str(clientsock.recv(BUFF))
-        #data.convert('unicode')
-        if verbose == 1:
-            print('data: ' + data)
-        if not data: break
-
-        #the recieved message decider
-        if data == 'hello':
-            hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-        elif data == 'goodbye':
-            goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-        elif 'update' in data:
-            update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-        else:
-            print('Recieved an unknown packet type, ignore!')
+#    while 1:
+    data = str(clientsock.recv(BUFF))
+    #data.convert('unicode')
+    if verbose == 1:
+        print('data: ' + data)
+    if not data: break
+    #the recieved message decider
+    if data == 'hello':
+        hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
+    elif data == 'goodbye':
+        goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
+    elif 'update' in data:
+        update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
+    else:
+        print('Recieved an unknown packet type, ignore!')
 
 def main(argv):
     global verbose
