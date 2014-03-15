@@ -53,7 +53,7 @@ def generate_nodelist(salt, protocol):
     nodelist = []
     #get the node list form the database
     if verbose == 1:
-        print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
+        print('Contacting the database to fill up the node list, proceeding with hashing the hostname')
     if protocol == 4:
         cursor.execute('SELECT (v4) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
     else:
@@ -85,7 +85,7 @@ def generate_slavelists(nodelist):
         slavelists.append(slavelist)
 
     if verbose == 1:
-        print 'We came up with the following slave list:' 
+        print('We came up with the following slave list:') 
         for slavelist in slavelists:
             print slavelist
     return slavelists
@@ -97,11 +97,11 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
     #Check if you are already in the nodelist
     if verbose == 1:
-        print 'Recieved a HELLO from ' + addr[0] + ', checking if we know this host'
+        print('Recieved a HELLO from ' + addr[0] + ', checking if we know this host')
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
             if verbose == 1:
-                print addr[0] + ' is a known host, We will allow him'
+                print(addr[0] + ' is a known host, We will allow him')
             #update the database that we have seen him
             if protocol == 4:
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol=4, active=1, tstamp=" + str(int(time.time())))
@@ -110,9 +110,9 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             db.commit()
             #look up this nodes slaves
             if verbose == 1:
-                print 'this nodes slaves are:'
+                print('this nodes slaves are:')
                 for slaves in slavelists[index_self]:
-                    print slaves
+                    print(slaves)
 
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
@@ -126,7 +126,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
-        print addr[0] + ' is an unknown host, ignore!'
+        print(addr[0] + ' is an unknown host, ignore!')
     return 1
 
 #handles an incom0ming goodbye message
@@ -134,11 +134,11 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
     if verbose == 1:
-        print 'Recieved a GOODBYE from ' + addr[0] + ', checking if this is a known host'
+        print('Recieved a GOODBYE from ' + addr[0] + ', checking if this is a known host')
     for node in nodelist:
         if addr[0] in node:
             if verbose == 1:  
-                print addr[0] + ' is a known host, We will set him to unactive'
+                print(addr[0] + ' is a known host, We will set him to unactive')
             #update the database that we have seen him
             if protocol == 4:
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time())))
@@ -151,7 +151,7 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
-        print addr[0] + ' is an unknown host, ignore!'
+        print(addr[0] + ' is an unknown host, ignore!')
     return 1
 
 #handles an incomming update message
@@ -159,11 +159,11 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
     if verbose == 1:
-        print 'Recieved an UPDATE from ' + addr[0] + ', checking if we know this host'
+        print('Recieved an UPDATE from ' + addr[0] + ', checking if we know this host')
     for node in nodelist:
         if addr[0] in node:
             if verbose == 1:  
-                print addr[0] + ' is a known host, lets see what it has to say'
+                print(addr[0] + ' is a known host, lets see what it has to say')
             #update the database with this nodes findings
             seen = '1' #temp, get from update massage
             slaveaddr = '145.100.108.232' #temp, get from update message
@@ -175,7 +175,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
             #update the slave's status 
             if verbose == 1:
-                print 'See if the supdate has changed anything for the slaves status'
+                print('See if the supdate has changed anything for the slaves status')
             stale_record_time = stale_record_formula(timer)
             if protocol == 4:
                 cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
@@ -189,7 +189,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             inactive_count = cursor.fetchall()
             if (inactive_count == 0) and (active_count > 0):
                 if verbose == 1:
-                    print 'This slave was found to be active'
+                    print('This slave was found to be active')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
                 else:
@@ -197,7 +197,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
                 db.commit()
             elif (inactive_count > 0) and (active_count == 0):
                 if verbose == 1:
-                    print 'This slave was found to be inactive'
+                    print('This slave was found to be inactive')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
                 else:
@@ -205,7 +205,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
                 db.commit()
             else:
                 if verbose == 1:
-                    print 'This slave was found to be active for some nodes, but inactive for others'
+                    print('This slave was found to be active for some nodes, but inactive for others')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
                 else:
@@ -215,13 +215,13 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             #lets see if this host needs a new slave list
             if node[2] == 0:
                 if verbose == 1:  
-                    print addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler'
+                    print(addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler')
                 hello_handler(clientsock, addr, data, nodelist, slavelists)
             return 0
 
     #the check must have been unsuccessfull because the for loop ended
     if verbose == 1:
-        print addr[0] + ' is an unknown host, ignore!'
+        print(addr[0] + ' is an unknown host, ignore!')
     return 1
 
 #handles an incomming message
@@ -229,7 +229,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     while 1:
         data = clientsock.recv(BUFF)
         if verbose == 1:
-            print 'data: ' + str(data)
+            print('data: ' + str(data))
         if not data: break
 
         #the recieved message decider
@@ -285,11 +285,11 @@ def main(argv):
     slavelists = generate_slavelists(nodelist)
     end_time = time.time() + timer
     if verbose == 1:
-        print 'staying a while, and listening...'
+        print('staying a while, and listening...')
     while 1:
         if time.time() > end_time:
             if verbose == 1:
-                print 'The time has come to assign new slaves'
+                print('The time has come to assign new slaves')
             nodelist = generate_nodelist(random.random(), protocol)
             slavelists = generate_slavelists(nodelist)
             end_time = time.time() + timer
