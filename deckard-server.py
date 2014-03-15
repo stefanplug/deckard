@@ -7,7 +7,8 @@ from socket import *
 import hashlib
 import pickle
 import json
-import MySQLdb
+#import MySQLdb
+import mysql.connector
 import time
 import random
 
@@ -20,7 +21,8 @@ BUFF = 1024
 V4HOST = '0.0.0.0'
 V6HOST = '::'
 PORT = 1337
-db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
+#db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
+db = mysql.connector.connect(user='root', pasword='geefmefietsterug', host='localhost', database='nlnog') 
 cursor = db.cursor()
 
 protocol = 0
