@@ -237,7 +237,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     if not data: 
         return
     #the recieved message decider
-    if data == 'hello':
+    if data == b'hello':
         hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     elif data == 'goodbye':
         goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
