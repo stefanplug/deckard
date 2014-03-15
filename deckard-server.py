@@ -238,11 +238,13 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
         #the recieved message decider
         if str(data) == 'hello':
             hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-        if str(data) == 'goodbye':
+        elif str(data) == 'goodbye':
             goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-        if 'update' in str(data):
+        elif 'update' in str(data):
             update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-
+        else:
+            print('NOOOOOO!!!111')
+        
 def main(argv):
     global verbose
     global groupsize
