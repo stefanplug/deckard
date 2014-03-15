@@ -66,7 +66,7 @@ def generate_nodelist(salt, protocol):
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
-            print node
+            print(node)
     return nodelist
 
 def generate_slavelists(nodelist):
