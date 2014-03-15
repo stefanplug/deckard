@@ -170,12 +170,12 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
             active_count = cursor.fetchall()
             cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
             inactive_count = cursor.fetchall()
-            if inactive_count == 0 AND active_count > 0:
+            if (inactive_count == 0) AND (active_count > 0):
                 if verbose == 1:
                     print 'This slave was found to be active'
                 cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
                 db.commit()
-            elif inactive_count > 0 AND active_count == 0:
+            elif (inactive_count > 0) AND (active_count == 0):
             if verbose == 1:
                     print 'This slave was found to be inactive'
                 cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
