@@ -87,7 +87,7 @@ def generate_slavelists(nodelist):
     if verbose == 1:
         print('We came up with the following slave list:') 
         for slavelist in slavelists:
-            print slavelist
+            print(slavelist)
     return slavelists
 
 #handles an incomming hello message
