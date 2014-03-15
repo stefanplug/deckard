@@ -63,7 +63,8 @@ def generate_nodelist(salt, protocol):
     data = cursor.fetchall()
     #create a hashed nodelist and sort the list
     for node in data:
-        hashed_addr = hashlib.sha1(str(salt) + node[0]).hexdigest()
+        #hashed_addr = hashlib.sha1(str(salt) + node[0]).hexdigest()
+        hashed_addr = hashlib.sha1(str(salt)).hexdigest
         nodelist.append([hashed_addr, str(node[0]), 0])
     nodelist = sorted(nodelist)
     if verbose == 1:
@@ -118,7 +119,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
-            message = {'UPDATE': slavelists[index_self], 'TTL': ttl}
+            message = {'UPDATE': true, 'SLAVES': slavelists[index_self], 'TTL': ttl}
             message = json.dumps(message)
             clientsock.send(json.dumps(message))
 
