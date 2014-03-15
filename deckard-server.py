@@ -17,22 +17,25 @@ import random
 
 #defaults
 BUFF = 1024
-HOST = '0.0.0.0'
+V4HOST = '0.0.0.0'
+V6HOST = '::'
 PORT = 1337
 db = MySQLdb.connect('localhost', 'root', 'geefmefietsterug', 'nlnog') 
 cursor = db.cursor()
 
+protocol = 0
 timer = 3600
 groupsize = 5
 verbose = 0
 stale_multiplier = 5    #h(if time = 10 seconds and the multiplier = 5, then any record older than 50 seconds is stale)
 
 def usage():
-    print("Usage: decard-server -g[roup] 5 -v[erbose]\n"
-        "-g[roup] 5         *The group size, default is 5\n"
-        "-v[erbose]         *Verbose mode\n"
-        "-t[imer] seconds   *The time between hashes, default is 3600 (1 hour)\n"
-        "-s[tale] 5         *The numer of timer times before update data is considered stale"
+    print("Usage: decard-server -p 4 -g 5 -t 3600 -s 5 -v\n"
+        "-p[rotocol] 4 or 6     *Use ipv4 or ipv6? **Required**\n"
+        "-g[roup] 5             *The group size, default is 5\n"
+        "-t[imer] seconds       *The time between hashes, default is 3600 (1 hour)\n"
+        "-s[tale] 5             *The numer of timer times before update data is considered stale\n"
+        "-v[erbose]             *Verbose mode\n"
     )
     sys.exit(2)
 
@@ -51,12 +54,15 @@ def generate_nodelist(salt):
     #get the node list form the database
     if verbose == 1:
         print 'Contacting the database to fill up the node list, proceeding with hashing the hostname'
-    cursor.execute('SELECT * FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
+    if protocol == 4:
+        cursor.execute('SELECT (v4) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
+    else:
+        cursor.execute('SELECT (v6) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v6 IS NOT NULL')
     data = cursor.fetchall()
     #create a hashed nodelist and sort the list
     for node in data:
-        hashed_addr = hashlib.sha1(str(salt) + node[1]).hexdigest()
-        nodelist.append([hashed_addr, node[2], 0])
+        hashed_addr = hashlib.sha1(str(salt) + node).hexdigest()
+        nodelist.append([hashed_addr, node, 0])
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
@@ -96,9 +102,11 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
         if addr[0] in node:
             if verbose == 1:
                 print addr[0] + ' is a known host, We will allow him'
-                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=1, tstamp=" + str(int(time.time()))
             #update the database that we have seen him
-            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=1, tstamp=" + str(int(time.time())))
+            if protocol == 4:
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol=4, active=1, tstamp=" + str(int(time.time())))
+            else:
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v6='" + addr[0] + "'), protocol=41, active=1, tstamp=" + str(int(time.time())))
             db.commit()
             #look up this nodes slaves
             if verbose == 1:
@@ -131,9 +139,11 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
         if addr[0] in node:
             if verbose == 1:  
                 print addr[0] + ' is a known host, We will set him to unactive'
-                print "REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time()))
             #update the database that we have seen him
-            cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time())))
+            if protocol == 4:
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol = 4, active=0, tstamp=" + str(int(time.time())))
+            else:
+                cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v6='" + addr[0] + "'), protocol=41, active=0, tstamp=" + str(int(time.time())))
             db.commit()
             #now update the node list to show that this node has left
             node[2] = 0
@@ -157,33 +167,49 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
             #update the database with this nodes findings
             seen = '1' #temp, get from update massage
             slaveaddr = '145.100.108.232' #temp, get from update message
-            if verbose == 1:
-                print "REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time()))
-            cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol = 4, active=" + seen + ", tstamp=" + str(int(time.time())))
+            if protocol == 4:
+                cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol=4, active=" + seen + ", tstamp=" + str(int(time.time())))
+            else:
+                cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v6='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "'), protocol=41, active=" + seen + ", tstamp=" + str(int(time.time())))
             db.commit()
 
             #update the slave's status 
             if verbose == 1:
                 print 'See if the supdate has changed anything for the slaves status'
             stale_record_time = stale_record_formula(timer)
-            cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
+            if protocol == 4:
+                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
+            else:
+                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=1 AND tstamp >"+ stale_record_time)
             active_count = cursor.fetchall()
-            cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
+            if protocol == 4:
+                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
+            else:
+                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=0 AND tstamp >"+ stale_record_time)
             inactive_count = cursor.fetchall()
             if (inactive_count == 0) and (active_count > 0):
                 if verbose == 1:
                     print 'This slave was found to be active'
-                cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
+                if protocol == 4:
+                    cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
+                else:
+                    cursor.execute("REPLACE INTO machines SET v6active=1 WHERE v6='" + slaveaddr + "'")
                 db.commit()
             elif (inactive_count > 0) and (active_count == 0):
                 if verbose == 1:
                     print 'This slave was found to be inactive'
-                cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
+                if protocol == 4:
+                    cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
+                else:
+                    cursor.execute("REPLACE INTO machines SET v6active=0 WHERE v6='" + slaveaddr + "'")
                 db.commit()
             else:
                 if verbose == 1:
                     print 'This slave was found to be active for some nodes, but inactive for others'
-                cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
+                if protocol == 4:
+                    cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
+                else:
+                    cursor.execute("REPLACE INTO machines SET v6active=2 WHERE v6='" + slaveaddr + "'")
                 db.commit()
             
             #lets see if this host needs a new slave list
@@ -219,25 +245,36 @@ def main(argv):
     global groupsize
     global cursor
     try:
-        opts, args = getopt.getopt(argv, "hvg:t:s:", ['help', 'verbose', 'group=', 'timer=', 'stale='])
+        opts, args = getopt.getopt(argv, "hp:g:t:s:v", ['help', 'protocol=', 'group=', 'timer=', 'stale=', 'verbose'])
     except getopt.GetoptError:
         usage()
 
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             usage()
-        elif opt in ("-v", "--verbose"):
-            verbose = 1
+        elif opt in ("-p", "--protocol"):
+            protocol = int(arg)
+            if (protocol != 4):
+                if (protocol != 6):
+                    usage()
         elif opt in ("-g", "--group"):
             groupsize = int(arg)
         elif opt in ("-t", "--timer"):
             timer = int(arg)
         elif opt in ("-s", "--stale"):
             stale_multiplier = int(arg)
+        elif opt in ("-v", "--verbose"):
+            verbose = 1
+    if protocol == 0:
+        usge()
 
     #start being a deckard server
-    ADDR = (HOST, PORT)
-    serversock = socket(AF_INET, SOCK_STREAM)
+    if protocol == 4:
+        ADDR = (V4HOST, PORT)
+        serversock = socket(AF_INET, SOCK_STREAM)
+    else:
+        ADDR = (V6HOST, PORT)
+        serversock = socket(AF_INET6, SOCK_STREAM)
     serversock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     serversock.bind(ADDR)
     serversock.listen(5)
