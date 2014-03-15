@@ -62,7 +62,7 @@ def generate_nodelist(salt, protocol):
     #create a hashed nodelist and sort the list
     for node in data:
         hashed_addr = hashlib.sha1(str(salt) + str(node)).hexdigest()
-        nodelist.append([hashed_addr, node, 0])
+        nodelist.append([hashed_addr, str(node), 0])
     nodelist = sorted(nodelist)
     if verbose == 1:
         for node in nodelist:
