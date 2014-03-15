@@ -233,7 +233,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     data = clientsock.recv(BUFF)
     #data.convert('unicode')
     if verbose == 1:
-        print('data: ' + data)
+        print(data)
     if not data: 
         return
     #the recieved message decider
