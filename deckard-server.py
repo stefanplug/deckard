@@ -61,6 +61,7 @@ def generate_nodelist(salt, protocol):
     else:
         cursor.execute('SELECT (v6) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v6 IS NOT NULL')
     data = cursor.fetchall()
+    salt = str(salt)
     salt = salt.encode('utf-8')
     #create a hashed nodelist and sort the list
     for node in data:
