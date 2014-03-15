@@ -103,14 +103,14 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
             cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), active=1, tstamp=" + str(int(time.time())))
             db.commit()
             #look up this nodes slaves
-            print 'this nodes slaves are:'
-            for slaves in slavelists[index_self]:
-                print slaves
-            #SEND SLAVELIST!
+            if verbose == 1:
+                print 'this nodes slaves are:'
+                for slaves in slavelists[index_self]:
+                    print slaves
             #starting to send update the dictionary encoded in a JSON
-            #message = {'UPDATE': slavelist}
-            #message = json.dumps(message)
-            #clientsock.send(json.dumps(message))
+            message = {'UPDATE': slavelists[index_self]}
+            message = json.dumps(message)
+            clientsock.send(json.dumps(message))
 
             #now update the node list to show that this node has been seen by us
             node[2] = 1
@@ -121,7 +121,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
         print addr[0] + ' is an unknown host, ignore!'
     return 1
 
-#handles an incomming goodbye message
+#handles an incom0ming goodbye message
 def goodbye_handler(clientsock, addr, data, nodelist, slavelists):
     global db
     global cursor
@@ -189,6 +189,7 @@ def message_handler(clientsock, addr, nodelist, slavelists):
         if 'update' in str(data):
             update_handler(clientsock, addr, data, nodelist, slavelists)
             #when we have processed the update we can now use the data to update the UP/DOWN status?
+            #maybe create a PANIC group?
 
 def main(argv):
     global verbose
