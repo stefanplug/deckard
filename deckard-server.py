@@ -176,7 +176,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists):
                 cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
                 db.commit()
             elif (inactive_count > 0) and (active_count == 0):
-            if verbose == 1:
+                if verbose == 1:
                     print 'This slave was found to be inactive'
                 cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
                 db.commit()
