@@ -34,18 +34,9 @@ def usage():
     )
     sys.exit(2)
 
-def sendmsg(ip, message):
-    global PORT
-    sock = socket(AF_INET, SOCK_STREAM)
-    try:
-        sock.connect((ip, PORT))
-        sock.sendall(message)
-        sock.close()
-        #sock.settimeout(5.0)
-        #response = sock.recv(1024)
-        #print("Received: {}".format(response))
-    except:
-        print 'failed to send the master an update'
+def ttl_formula(timer):
+    timer / 2 + 1
+    return timer
 
 def generate_nodelist(salt):
     nodelist = []
@@ -107,8 +98,10 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists):
                 print 'this nodes slaves are:'
                 for slaves in slavelists[index_self]:
                     print slaves
-            #starting to send update the dictionary encoded in a JSON
-            message = {'UPDATE': slavelists[index_self]}
+            #Send the slave list PLUS a TTL to the node
+            ttl = ttl_formula(timer)
+            mesg = (slavelists[index_self], ttl)
+            message = {'UPDATE': mesg}
             message = json.dumps(message)
             clientsock.send(json.dumps(message))
 
