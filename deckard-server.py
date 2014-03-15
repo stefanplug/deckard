@@ -243,7 +243,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
         elif 'update' in str(data):
             update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
         else:
-            print('NOOOOOO!!!111')
+            print('Recieved an unknown packet type, ignore!')
         
 def main(argv):
     global verbose
