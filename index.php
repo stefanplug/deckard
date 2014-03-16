@@ -17,7 +17,7 @@ while($servers_row = mysqli_fetch_array($servers))
     $nodes = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v4 IS NOT NULL)");
     while($nodes_row = mysqli_fetch_array($nodes))
     {
-        $server_seen = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.master_id=" . $servers_row['id']);
+        $server_seen = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.master_id=" . $servers_row['id'] . " AND machinestates.protocol=4");
         $updatetime = mysqli_fetch_array($server_seen);
         $uptime = time() - $updatetime['tstamp'];  
         if($uptime > $staleout_time)
@@ -57,7 +57,7 @@ while($servers_row6 = mysqli_fetch_array($servers6))
     $nodes6 = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v6 IS NOT NULL)");
     while($nodes_row6 = mysqli_fetch_array($nodes6))
     {
-        $server_seen6 = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row6['id'] ." AND machinestates.master_id=" . $servers_row6['id']);
+        $server_seen6 = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row6['id'] ." AND machinestates.master_id=" . $servers_row6['id'] . " AND machinestates.protocol=41")
         $updatetime6 = mysqli_fetch_array($server_seen6);
         $uptime6 = time() - $updatetime6['tstamp'];  
         if($uptime6 > $staleout_time)
@@ -69,7 +69,7 @@ while($servers_row6 = mysqli_fetch_array($servers6))
             echo "<tr><td></td>";
         }
         echo "</td><td><b>Node:</b></td><td><b>" . $nodes_row6['hostname'] . "</b></td><td><b>" . $nodes_row6['v6'] . "</b></td><td><b>last seen by server " . $uptime6 . " seconds ago</b></td></tr>";
-        $master_nodes6 = mysqli_query($con,"SELECT machines.hostname, machines.v6, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id AND machinestates.master_id!=" . $servers_row6['id'] . " AND machinestates.slave_id=" . $nodes_row6['id']." AND machinestates.protocol=41");
+        $master_nodes6 = mysqli_query($con,"SELECT machines.hostname, machines.v6, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id AND machinestates.master_id!=" . $servers_row6['id'] . " AND machinestates.slave_id=" . $nodes_row6['id'] . " AND machinestates.protocol=41");
         while($masters6 = mysqli_fetch_array($master_nodes6))
         {
             $updatetime6 = time() - $masters6['tstamp'];
