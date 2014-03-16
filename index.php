@@ -57,7 +57,7 @@ while($servers_row6 = mysqli_fetch_array($servers6))
     $nodes6 = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v6 IS NOT NULL)");
     while($nodes_row6 = mysqli_fetch_array($nodes6))
     {
-        $server_seen6 = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row6['id'] ." AND machinestates.master_id=" . $servers_row6['id'] . " AND machinestates.protocol=41")
+        $server_seen6 = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row6['id'] ." AND machinestates.master_id=" . $servers_row6['id'] . " AND machinestates.protocol=41");
         $updatetime6 = mysqli_fetch_array($server_seen6);
         $uptime6 = time() - $updatetime6['tstamp'];  
         if($uptime6 > $staleout_time)
