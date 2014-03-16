@@ -29,7 +29,7 @@ while($servers_row = mysqli_fetch_array($servers))
             echo "<tr><td></td>";
         }
         echo "</td><td><b>Node:</b></td><td><b>" . $nodes_row['hostname'] . "</b></td><td><b>" . $nodes_row['v4'] . "</b></td><td><b>last seen by server " . $uptime . " seconds ago</b></td></tr>";
-        $master_nodes = mysqli_query($con,"SELECT machines.hostname, machines.v4, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id  AND machinestates.master_id!=1 AND machinestates.slave_id=" . $nodes_row['id']);
+        $master_nodes = mysqli_query($con,"SELECT machines.hostname, machines.v4, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id  AND machinestates.master_id!=" . $servers_row['id'] . " AND machinestates.slave_id=" . $nodes_row['id']);
         while($masters = mysqli_fetch_array($master_nodes))
         {
             $updatetime = time() - $masters['tstamp'];
