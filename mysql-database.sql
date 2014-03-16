@@ -51,7 +51,9 @@ CREATE TABLE IF NOT EXISTS `nlnog`.`machines` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `hostname` VARCHAR(255) NOT NULL,
   `v4` VARCHAR(255) NULL DEFAULT NULL,
+  `v4active` TINYINT(2) NULL,
   `v6` VARCHAR(255) NULL DEFAULT NULL,
+  `v6active` TINYINT(2) NULL,
   `autnum` INT(11) NOT NULL,
   `country` VARCHAR(2) NULL DEFAULT NULL,
   `state` VARCHAR(2) NULL DEFAULT NULL,
@@ -131,9 +133,10 @@ DEFAULT CHARACTER SET = latin1;
 CREATE TABLE IF NOT EXISTS `nlnog`.`machinestates` (
   `master_id` INT(11) NOT NULL,
   `slave_id` INT(11) NOT NULL,
+  `protocol` INT(8) NOT NULL COMMENT 'IANA protocol numbers\n4 = ipv4\n41 = ipv6\n',
   `active` TINYINT NOT NULL,
   `tstamp` INT(11) NOT NULL,
-  PRIMARY KEY (`master_id`, `slave_id`),
+  PRIMARY KEY (`master_id`, `slave_id`, `protocol`),
   INDEX `fk_machinestates_machines2_idx` (`slave_id` ASC),
   CONSTRAINT `fk_machinestates_machines1`
     FOREIGN KEY (`master_id`)
