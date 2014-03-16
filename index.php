@@ -41,7 +41,7 @@ while($servers_row = mysqli_fetch_array($servers))
                 }
                 else
                 {
-                    echo "<tr bgcolor='red'><td>*</td><td>Master node:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr bgcolor='red'><td>*</td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN " . $updatetime . " seconds ago</td></tr>";
                 }
             }
         }
