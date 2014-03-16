@@ -22,7 +22,7 @@ while($servers_row = mysqli_fetch_array($servers))
         $uptime = time() - $updatetime['tstamp'];  
         if($uptime > $staleout_time)
         {
-            echo "<tr bgcolor=red><td><b>*</b>b></td>";
+            echo "<tr bgcolor=red><td><b>*</b></td>";
         }
         else
         {
@@ -37,7 +37,7 @@ while($servers_row = mysqli_fetch_array($servers))
             {
                 if($masters['active'] == 1)
                 {
-                    echo "<tr><td></td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td bgcolor='green'>UP " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr><td></td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>UP " . $updatetime . " seconds ago</td></tr>";
                 }
                 else
                 {
