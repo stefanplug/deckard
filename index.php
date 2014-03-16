@@ -62,7 +62,6 @@ while($slaves = mysqli_fetch_array($slave_nodes))
         echo "</table>";
     }
 }
-*/
 echo "</table></body></html><body>";
 
 mysqli_close($con);
