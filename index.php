@@ -22,13 +22,13 @@ while($servers_row = mysqli_fetch_array($servers))
         $uptime = time() - $updatetime['tstamp'];  
         if($uptime > $staleout_time)
         {
-            echo "<tr bgcolor=red>";
+            echo "<tr bgcolor=red><td>*</td>";
         }
         else
         {
-            echo "<tr bgcolor=green>";
+            echo "<tr><td></td>";
         }
-        echo "<td>*****</td></td><td>Slave node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
+        echo "</td><td>Node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
         $master_nodes = mysqli_query($con,"SELECT machines.hostname, machines.v4, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id AND machinestates.slave_id=" . $nodes_row['id']);
         while($masters = mysqli_fetch_array($master_nodes))
         {
