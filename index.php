@@ -1,5 +1,5 @@
 <?php
-$staleout_time = 60;
+$staleout_time = 120;
 
 $con=mysqli_connect("localhost","root","geefmefietsterug","nlnog");
 // Check connection
