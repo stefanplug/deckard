@@ -8,9 +8,9 @@ if (mysqli_connect_errno())
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
 }
 
-echo "<html><body><h1>Deckard ring</h1><p>Staleout time: " . $staleout_time . " seconds</p>"
+echo "<html><body><h1>Deckard ring</h1><p>Staleout time: " . $staleout_time . " seconds</p>";
 echo "<h2>IPv4</h>";
-echo "<div>"
+echo "<div>";
 // create a list of which node have been seen by the server
 $servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v4 IS NOT NULL");
 while($servers_row = mysqli_fetch_array($servers))
@@ -49,7 +49,7 @@ while($servers_row = mysqli_fetch_array($servers))
         }
     }
 }
-echo "</div>"
+echo "</div>";
 // create a list of which node have been seen by the server
 echo "<h2>IPv6</h>";
 $servers6 = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE deckardserver=1 AND v6 IS NOT NULL");
