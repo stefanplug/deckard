@@ -24,7 +24,15 @@ while($servers_row = mysqli_fetch_array($servers))
         $server_seen = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.master_id=1");// . $servers_row['id']);
         $updatetime = mysqli_fetch_array($server_seen);
         $uptime = time() - $updatetime['tstamp'];  
-        echo "<tr><td>Node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
+        if uptime > stateout_time
+        {
+            echo "<tr bgcolor=red>";
+        }
+        else
+        {
+            echo "<tr bgcolor=green>";
+        }
+        echo "<td>Node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
     }
 }
 
