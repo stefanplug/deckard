@@ -1,5 +1,5 @@
 <?php
-$staleout_time = 120;
+$staleout_time = 55;
 
 $con=mysqli_connect("localhost","root","geefmefietsterug","nlnog");
 // Check connection
@@ -35,16 +35,14 @@ while($servers_row = mysqli_fetch_array($servers))
             $updatetime = time() - $masters['tstamp'];
             if($updatetime < $staleout_time)
             {
-                echo "<tr><td>Master node:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td>";
                 if($masters['active'] == 1)
                 {
-                    echo "<td bgcolor='green'>up</td>";
+                    echo "<tr bgcolor='green'><td>Master node:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td bgcolor='green'>UP" . $updatetime . " seconds ago</td></tr>";
                 }
                 else
                 {
-                    echo "<td bgcolor='red'>down</td>";
+                    echo "<tr bgcolor='red'><td>Master node:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN" . $updatetime . " seconds ago</td></tr>";
                 }
-                echo "<td>" . $updatetime . " seconds ago</tr>";
             }
         }
     }
