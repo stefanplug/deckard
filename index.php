@@ -24,7 +24,7 @@ while($servers_row = mysqli_fetch_array($servers))
         $server_seen = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.master_id=1");// . $servers_row['id']);
         $updatetime = mysqli_fetch_array($server_seen);
         $uptime = time() - $updatetime['tstamp'];  
-        if $uptime > $stateout_time
+        if($uptime > $stateout_time)
         {
             echo "<tr bgcolor=red>";
         }
