@@ -22,7 +22,8 @@ while($servers_row = mysqli_fetch_array($servers))
     while($nodes_row = mysqli_fetch_array($nodes))
     {
         $server_seen = mysqli_query($con,"SELECT machinestates.tstamp, machinestates.active FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.master_id=1");// . $servers_row['id']);
-        $updatetime = time() - $server_seen[0]['machinestates.tstamp']; 
+        //$updatetime = time() - $server_seen['machinestates.tstamp']; 
+        echo $server_seen['machinestates.tstamp'];
         echo "<tr><td>Node:</td><td>" . $nodes_row[hostname] . "</td><td>" . $nodes_row[v4] . "</td><td>last seen by server " . $updatetime . " seconds ago</td></tr>";
     }
 }
