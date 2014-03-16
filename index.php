@@ -53,7 +53,7 @@ while($servers_row = mysqli_fetch_array($servers))
 $servers6 = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE deckardserver=1 AND v6 IS NOT NULL");
 while($servers_row6 = mysqli_fetch_array($servers6))
 {
-    echo "<table><tr><th>IPv6</th><td></td><td><b>Server:</b></td><td><b>" . $servers_row6['hostname'] . "</b></td><td><b>" . $servers_row6['v6'] . "</b></td></tr>";
+    echo "<table><th>IPv6</th><tr><td></td><td><b>Server:</b></td><td><b>" . $servers_row6['hostname'] . "</b></td><td><b>" . $servers_row6['v6'] . "</b></td></tr>";
     $nodes6 = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v6 IS NOT NULL)");
     while($nodes_row6 = mysqli_fetch_array($nodes6))
     {
