@@ -17,11 +17,13 @@ echo "<p>The following table shows what nodes were seen by the server</p>";
 $servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v4 IS NOT NULL");
 while($servers_row = mysqli_fetch_array($servers))
 {
-    echo "<table border=1><th>Table title</th><tr><td><span style='font-weight:bold'>Server:</span></td><td><span style='font-weight:bold'>" . $servers_row[hostname] . "</span></td><td></td><td><span style='font-weight:bold'>" . $row[v4] . "</span></td></tr>";
+    echo "<table border=1><th>Table title</th><tr><td><span style='font-weight:bold'>Server:</span></td><td><span style='font-weight:bold'>" . $servers_row[hostname] . "</span></td><td></td><td><span style='font-weight:bold'>" . $servers_row[v4] . "</span></td></tr>";
     $nodes = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v4 IS NOT NULL)");
     while($nodes_row = mysqli_fetch_array($nodes))
     {
-        echo "<tr><td>Node:</td><td>" . $nodes_row[hostname] . "</td><td>" . $nodes_row[v4] . "</td></tr>";
+        $server_seen = mysqli_query($con,"SELECT tstamp FROM machines, machinestates WHERE machines.id = machinestates.slave_id AND machinestates.slave_id=" . $nodes_row[id] ." AND machinestates.master_id=" . $servers_row[id]);
+        $updatetime = time() - $server_seen['tstamp']; 
+        echo "<tr><td>Node:</td><td>" . $nodes_row[hostname] . "</td><td>" . $nodes_row[v4] . "</td><td>last seen by server " . $updatetime . " seconds ago</td></tr>";
     }
 }
 
