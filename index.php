@@ -50,7 +50,7 @@ while($servers_row = mysqli_fetch_array($servers))
 
 // create a list of which node have been seen by the server
 echo "<br /><br /><h2>IPv6</h>";
-$servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v6 IS NOT NULL");
+$servers = mysqli_query($con,"SELECT id, hostname, v6 FROM machines WHERE deckardserver=1 AND v6 IS NOT NULL");
 while($servers_row = mysqli_fetch_array($servers))
 {
     echo "<table border=0><tr><td></td><td><b>Server:</b></td><td><b>" . $servers_row['hostname'] . "</b></td><td><b>" . $servers_row['v6'] . "</b></td></tr>";
