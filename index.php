@@ -9,10 +9,7 @@ if (mysqli_connect_errno())
 }
 
 echo "<html><body><h1>Deckard ring</h1><p>Staleout time: " . $staleout_time . " seconds</p><h2>IPv4</h>";
-
-
 // create a list of which node have been seen by the server
-echo "<h3>Server table<h></h></h3><p>The following table shows what nodes were seen by the server</p>";
 $servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v4 IS NOT NULL");
 while($servers_row = mysqli_fetch_array($servers))
 {
@@ -31,11 +28,29 @@ while($servers_row = mysqli_fetch_array($servers))
         {
             echo "<tr bgcolor=green>";
         }
-        echo "<td>Node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
+        echo "<td>Slave node:</td><td>" . $nodes_row['hostname'] . "</td><td>" . $nodes_row['v4'] . "</td><td>last seen by server " . $uptime . " seconds ago</td></tr>";
+        $master_nodes = mysqli_query($con,"SELECT machines.hostname, machines.v4, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id AND machinestates.slave_id=" . $nodes_row['id']);
+        while($masters = mysqli_fetch_array($master_nodes))
+        {
+            $updatetime = time() - $masters['tstamp'];
+            if($updatetime < $staleout_time)
+            {
+                echo "<tr><td>Master node:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td>";
+                if($masters['active'] == 1)
+                {
+                    echo "<td bgcolor='green'>up</td>";
+                }
+                else
+                {
+                    echo "<td bgcolor='red'>down</td>";
+                }
+                echo "<td>" . $updatetime . " seconds ago</tr>";
+            }
+        }
     }
 }
 
-// create the ring tables
+/* create the ring tables
 echo "<h3>Ring tables<h></h></h3><p>The following tables show what nodes were seen by what other nodes</p>";
 $slave_nodes = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE (deckardserver = 0 OR deckardserver IS NULL) AND (v4 IS NOT NULL)");
 while($slaves = mysqli_fetch_array($slave_nodes))
@@ -62,7 +77,8 @@ while($slaves = mysqli_fetch_array($slave_nodes))
         echo "</table>";
     }
 }
-echo "</table></body></html><body>";
+*/
+echo "</table></body></html>";
 
 mysqli_close($con);
 ?>
