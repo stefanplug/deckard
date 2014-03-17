@@ -10,7 +10,7 @@ if (mysqli_connect_errno())
 $staleout_time = 55;
 if($_GET['staleout_time'])
 {
-    $staleout_time = $_GET['staleout_time']
+    $staleout_time = $_GET['staleout_time'];
 }
 
 echo "<html><body><h2>Deckard ring</h><p>Staleout time: <form action='" . $_PHP_SELF . " method='GET'><input type='text' name='staleout_time'/>" . $staleout_time . " seconds<input type='submit' /></p>";
