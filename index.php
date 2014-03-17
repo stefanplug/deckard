@@ -1,5 +1,4 @@
 <?php
-$staleout_time = 55;
 
 $con=mysqli_connect("localhost","root","geefmefietsterug","nlnog");
 // Check connection
@@ -8,7 +7,13 @@ if (mysqli_connect_errno())
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
 }
 
-echo "<html><body><h2>Deckard ring</h><p>Staleout time: " . $staleout_time . " seconds</p>";
+$staleout_time = 55;
+if($_GET['staleout_time'])
+{
+    $staleout_time = $_GET['staleout_time']
+}
+
+echo "<html><body><h2>Deckard ring</h><p>Staleout time: <form action='" . $_PHP_SELF . " method='GET'><input type='text' name='staleout_time'/>" . $staleout_time . " seconds<input type='submit' /></p>";
 
 // create a list of which node have been seen by the server
 $servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v4 IS NOT NULL");
