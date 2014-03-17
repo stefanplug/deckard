@@ -63,6 +63,7 @@ def client(ip, port, message):
         msg_ttl = json.loads(msg, object_hook=parse_ttl)
         logging.info("TTL: %s", msg_ttl)
 
+
         #pool = Pool(processes=4)               # start 4 worker processes
         #result = pool.apply_async(f, [10])     # evaluate "f(10)" asynchronously
         #print(result.get(timeout=1))           # prints "100" unless your computer is *very* slow
@@ -76,6 +77,12 @@ def client(ip, port, message):
         logging.info("unkown message")
         
 def check_node(ip):
+    """
+    This function determines if a node is up or not. In here
+    you should define the "availability" tests.
+
+    TODO: multiprocessing?
+    """
     ping = subprocess.call("ping -c 2 %s" % ip, shell=True)
     logging.info("ping return code: %i", ping)
     if ping == 0:
@@ -85,8 +92,12 @@ def check_node(ip):
         return(False)
 
 def notify(slave):
-    message = {'UPDATE': slave, 'STATUS': 0}
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    """
+    Notify the Deckard-server that a node is unavailable from our
+    perspective.
+    """
+    message = {'UPDATE': 'true', slave, 'STATUS': 0}
+    message = json.dumps(message)
     try:
         sock.connect((ip, port))
     except socket.error as err:
@@ -99,7 +110,6 @@ def notify(slave):
     except socket.timeout:
         logging.error("Connection to server timed out")
         return 2
-    
 
 def main(argv):
     # first parameters, then config file, else print help output
