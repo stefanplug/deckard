@@ -13,7 +13,7 @@ if($_GET['staleout_time'])
     $staleout_time = $_GET['staleout_time'];
 }
 
-echo "<html><body><h2>Deckard ring</h><p>Staleout time: <form action='" . $_PHP_SELF . " method='GET'><input type='text' name='staleout_time'/>" . $staleout_time . " seconds<input type='submit' /></p>";
+echo "<html><body><h2>Deckard ring</h><p>Staleout time: <form action='" . $_PHP_SELF . " method='GET'><input type='text' name='staleout_time'/><input type='submit' /></p>current staleout time is " . $staleout_time . " seconds</p>";
 
 // create a list of which node have been seen by the server
 $servers = mysqli_query($con,"SELECT id, hostname, v4 FROM machines WHERE deckardserver=1 AND v4 IS NOT NULL");
