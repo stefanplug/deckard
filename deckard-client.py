@@ -121,13 +121,15 @@ class CheckNode():
         you should define the "availability" tests.
         """
         ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
-        logging.info("ping return code: %i", ping)
+        logging.info("ping return code: %i self.alive=%i", ping, self.alive)
         if (ping == 0) and (self.alive != 0):
             logging.warning("notifing deckard-server slave is alive again")
             notify_available(slave)
+            self.alive = 0
         elif self.alive != 1:
             logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
+            self.alive = 1
 
 def notify_available(slave):
     """
