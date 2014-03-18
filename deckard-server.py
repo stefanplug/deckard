@@ -7,10 +7,10 @@ from socket import *
 import hashlib
 import pickle
 import json
-#import MySQLdb
 import mysql.connector
 import time
 import random
+import logging
 
 #nodelist and slavelists makeup:
 #nodelist[Ha5H, 192.168.1.1, 0]   #(hashed IPv4, IPv4, hash_epoch) When node send an update and the hash_epoch is 0 then it will get a new slave list from the server
@@ -56,6 +56,7 @@ def generate_nodelist(salt, protocol):
     #get the node list form the database
     if verbose == 1:
         print('Contacting the database to fill up the node list, proceeding with hashing the hostname')
+        logging.info('Contacting the database to fill up the node list, proceeding with hashing the hostname')
     if protocol == 4:
         cursor.execute('SELECT (v4) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
     else:
@@ -70,6 +71,7 @@ def generate_nodelist(salt, protocol):
     if verbose == 1:
         for node in nodelist:
             print(node)
+            logging.info("%s", node)
     return nodelist
 
 def generate_slavelists(nodelist):
@@ -249,6 +251,9 @@ def main(argv):
     global groupsize
     global cursor
     global protocol
+    log = logging
+    loglevel = log.WARNING
+
     try:
         opts, args = getopt.getopt(argv, "hp:g:t:s:v", ['help', 'protocol=', 'group=', 'timer=', 'stale=', 'verbose'])
     except getopt.GetoptError:
@@ -270,8 +275,14 @@ def main(argv):
             stale_multiplier = int(arg)
         elif opt in ("-v", "--verbose"):
             verbose = 1
+            loglevel=log.DEBUG
     if protocol == 0:
         usge()
+
+    # start logging 
+    logformat = "%(asctime)s - %(levelname)s - %(message)s"
+    log.basicConfig(format=logformat, level=loglevel)
+    logging.debug("Entering debug mode (the lowest log level)")
 
     #start being a deckard server
     if protocol == 4:
