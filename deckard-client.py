@@ -83,7 +83,7 @@ def client(ip, port):
         msg_ttl = json.loads(msg, object_hook=parse_ttl)
         logging.debug("TTL: %s", msg_ttl)
 
-        #start availability checking in paralell
+        #start availability checking in parallel
         logging.debug("Starting %i processes in 2 seconds", len(msg_slaves))
         time.sleep(2)
         pool = Pool(processes=len(msg_slaves))
@@ -91,9 +91,9 @@ def client(ip, port):
         msg_slaves.pop(0)
         for slave in msg_slaves:
             pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
-        p.join()
-        logging.debug('exiting')
-        exit(1)
+        pool.close()
+        pool.join()
+        logging.debug('Client function done')
     else:
         logging.debug("unkown message")
 
@@ -107,13 +107,14 @@ class CheckNode():
         self.ip = server_ip
         self.port = server_port
         self.ttl = ttl
-        #check the node forever
-        while 1:
+        self.limit = self.ttl + time.time()
+        #check the node until TTL
+        while self.limit > time.time():
             self.check_node(slave)
-            #wait for ttl to end then check_node again
-            logging.info("waiting for TTL: %i", ttl)
-            time.sleep(20)
-            #time.sleep(int(ttl))
+            #WARNING: The below time should be depending on what scripts
+            #         scripts you plan to run for availability checking.
+            time.sleep(10)
+        return None
     def check_node(self, slave):
         """
         This function determines if a node is up or not. In here
@@ -121,8 +122,7 @@ class CheckNode():
         """
         ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
         logging.info("ping return code: %i", ping)
-        if ping == 0:
-            logging.info("ping return code: %i", ping)
+        if (ping == 0) and (self.alive != 0):
             notify_available(slave)
         else:
             logging.warning("ping return code: %i", ping)
@@ -176,9 +176,9 @@ def main(argv):
     # start logging 
     logformat = "%(asctime)s - %(levelname)s - %(message)s"
     log.basicConfig(format=logformat, level=loglevel)
-    # start connecting to server
-    client(ip, port)
-    time.sleep(1)
+    # keep running forever
+    while 1:
+        client(ip, port)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
