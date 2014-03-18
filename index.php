@@ -43,11 +43,11 @@ while($servers_row = mysqli_fetch_array($servers))
             {
                 if($masters['active'] == 1)
                 {
-                    echo "<tr><td></td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>UP " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr><td></td><td></td>was UP according to<td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>" . $updatetime . "</td><td>seconds ago</td></tr>";
                 }
                 else
                 {
-                    echo "<tr bgcolor='red'><td>*</td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr bgcolor='red'><td>*</td>was DOWN according to<td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>" . $updatetime . "</td><td>seconds ago</td></tr>";
                 }
             }
         }
