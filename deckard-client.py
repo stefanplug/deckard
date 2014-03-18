@@ -32,84 +32,116 @@ def parse_slaves(dct):
 def parse_ttl(dct):
     if 'TTL' in dct:
         return(dct['TTL'])
-        
-def client(ip, port, message):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+def sendmsg(sock, msg):
+    timeout = 5.0
+    sock.settimeout(timeout)
     try:
         sock.connect((ip, port))
     except socket.error as err:
         logging.error(err)
-        sys.exit(2)
-    sock.sendall(message.encode())
-    sock.settimeout(5.0)
+        return 2 
+    finally:
+        sock.sendall(msg.encode())
+        sock.close()
+
+def sendrecvmsg(sock, msg):
+    timeout = 5.0
+    sock.settimeout(timeout)
+    try:
+        sock.connect((ip, port))
+    except socket.error as err:
+        logging.error(err)
+        quit(2)
+    sock.sendall(msg.encode())
     try:
         msg = sock.recv(1024).decode()
+        return msg
     except socket.timeout:
         logging.error("Connection to server timed out")
         return 2
-    # for testing purposes
-    #msg = '{"ERROR": true}'
-    #msg = '{"UPDATE": true, "SLAVES": ["145.100.108.229", "145.100.108.234", "145.100.108.233", "145.100.108.230"], "TTL": 3600}'
-    # decode the JSON message type
+    finally:
+        sock.close()
+
+def client(ip, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    message = {'HELLO': 'true'}
+    message = json.dumps(message)
+    msg = sendrecvmsg(sock, message)
+    sock.close()
+
+    #parse message type
     msg_type = json.loads(msg, object_hook=parse_type)
-    logging.info("Message type: %s", msg_type)
+    logging.debug("Message type: %s", msg_type)
 
     if msg_type == 'UPDATE':
-        # decode the JSON slaves
-        logging.info(msg)
+        # decode the slaves list to a list
+        logging.debug(msg)
         msg_slaves = json.loads(msg, object_hook=parse_slaves)
-        logging.info("Slaves: %s", msg_slaves)
+        logging.debug("Slaves: %s", msg_slaves)
         # decode the JSON TTL
         msg_ttl = json.loads(msg, object_hook=parse_ttl)
-        logging.info("TTL: %s", msg_ttl)
+        logging.debug("TTL: %s", msg_ttl)
 
-
-        #pool = Pool(processes=4)               # start 4 worker processes
-        #result = pool.apply_async(f, [10])     # evaluate "f(10)" asynchronously
-        #print(result.get(timeout=1))           # prints "100" unless your computer is *very* slow
-        #print(pool.map(f, range(10)))          # prints "[0, 1, 4,..., 81]"
-
+        #start availability checking in paralell
+        logging.debug("Starting %i processes in 2 seconds", len(msg_slaves))
+        time.sleep(2)
+        pool = Pool(processes=len(msg_slaves))
         for slave in msg_slaves:
-            status = check_node(slave)
-            if status == False:
-                notify(slave)
+            pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
     else:
-        logging.info("unkown message")
-        
-def check_node(ip):
-    """
-    This function determines if a node is up or not. In here
-    you should define the "availability" tests.
+        logging.debug("unkown message")
 
-    TODO: multiprocessing?
+class CheckNode():
     """
-    ping = subprocess.call("ping -c 2 %s" % ip, shell=True)
-    logging.info("ping return code: %i", ping)
-    if ping == 0:
-        return(True)
-    if ping == 1:
-        logging.error("ping return code: %i", ping)
-        return(False)
+    Check a slave nodes availability
+    """
+    def __init__(self, server_ip, server_port, slave, ttl):
+        #the default mark is offline
+        self.alive = 1
+        self.ip = server_ip
+        self.port = server_port
+        self.ttl = ttl
+        #check the node forever
+        while 1:
+            self.check_node(slave)
+            #wait for ttl to end then check_node again
+            logging.info("waiting for TTL: %i", ttl)
+            time.sleep(20)
+            #time.sleep(int(ttl))
+    def check_node(self, slave):
+        """
+        This function determines if a node is up or not. In here
+        you should define the "availability" tests.
+        """
+        ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
+        logging.info("ping return code: %i", ping)
+        if ping == 0:
+            logging.warning("ping return code: %i", ping)
+            notify_available(slave)
+        else:
+            logging.warning("ping return code: %i", ping)
+            notify_unvailable(slave)
 
-def notify(slave):
+def notify_available(slave):
+    """
+    Notify the Deckard-server that a node is available from our
+    perspective.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    message = {'UPDATE': 'true', 'SLAVE': slave, 'STATUS': 1}
+    message = json.dumps(message)
+    sendmsg(sock, message)
+
+def notify_unvailable(slave):
     """
     Notify the Deckard-server that a node is unavailable from our
     perspective.
     """
-    message = {'UPDATE': 'true', 'slave': slave, 'STATUS': 0}
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    message = {'UPDATE': 'true', 'SLAVE': slave, 'STATUS': 0}
     message = json.dumps(message)
-    try:
-        sock.connect((ip, port))
-    except socket.error as err:
-        logging.error(err)
-        sys.exit(2)
-    sock.sendall(message.encode())
-    sock.settimeout(5.0)
-    try:
-        msg = sock.recv(1024).decode()
-    except socket.timeout:
-        logging.error("Connection to server timed out")
-        return 2
+    sendmsg(sock, message)
 
 def main(argv):
     # first parameters, then config file, else print help output
@@ -122,6 +154,8 @@ def main(argv):
         usage()
 
     # assign parameters to variables
+    global ip
+    global port
     log = logging
     loglevel = log.WARNING
     port = 1337
@@ -138,9 +172,8 @@ def main(argv):
     logformat = "%(asctime)s - %(levelname)s - %(message)s"
     log.basicConfig(format=logformat, level=loglevel)
     # start connecting to server
-    while 1:
-        client(ip, port, "hello")
-        time.sleep(1)
+    client(ip, port)
+    time.sleep(1)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
