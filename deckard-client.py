@@ -126,7 +126,7 @@ class CheckNode():
             logging.warning("notifing deckard-server slave is alive again")
             notify_available(slave)
             self.alive = 0
-        elif self.alive != 1:
+        elif (ping == 1) and (self.alive != 1):
             logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
             self.alive = 1
