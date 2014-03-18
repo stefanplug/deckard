@@ -125,7 +125,7 @@ def generate_slavelists(nodelist):
     return slavelists
 
 #handles an incomming hello message
-def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
+def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol, end_time):
     global db
     global cursor
 
@@ -148,7 +148,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
                 logging.debug('###### End node slave ######')
 
             #Send the slave list PLUS a TTL to the node
-            ttl = ttl_formula(timer)
+            ttl = ttl_formula(end_time)
             message = {'UPDATE': 'true', 'SLAVES': slavelists[index_self], 'TTL': ttl}
             message = json.dumps(message)
             clientsock.send(message.encode())
