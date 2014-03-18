@@ -102,8 +102,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global cursor
 
     #Check if you are already in the nodelist
-    if verbose == 1:
-        print('Recieved a HELLO from ' + addr[0] + ', checking if we know this host')
+    logging.debug('Recieved a HELLO from %s, checking if we know this host', addr[0])
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
             logging.debug('%s is a known address, we will allow him', addr[0])
@@ -162,12 +161,10 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
-    if verbose == 1:
-        print('Recieved an UPDATE from ' + addr[0] + ', checking if we know this host')
+    logging.debug('Recieved an UPDATE from %s checking if we know this host', addr[0])
     for node in nodelist:
         if addr[0] in node:
-            if verbose == 1:  
-                print(addr[0] + ' is a known host, lets see what it has to say')
+            logging.debug('%s is a known host, lets see what it has to say', addr[0])
             #update the database with this nodes findings
             seen = '1' #temp, get from update massage
             slaveaddr = '145.100.108.232' #temp, get from update message
@@ -178,8 +175,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             db.commit()
 
             #update the slave's status 
-            if verbose == 1:
-                print('See if the supdate has changed anything for the slaves status')
+            logging.debug('See if the update has changed anything for the slaves status')
             stale_record_time = stale_record_formula(timer)
             if protocol == 4:
                 cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
@@ -192,24 +188,21 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
                 cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=0 AND tstamp >"+ stale_record_time)
             inactive_count = cursor.fetchall()
             if (inactive_count == 0) and (active_count > 0):
-                if verbose == 1:
-                    print('This slave was found to be active')
+                logging.debug('This slave was found to be active')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
                 else:
                     cursor.execute("REPLACE INTO machines SET v6active=1 WHERE v6='" + slaveaddr + "'")
                 db.commit()
             elif (inactive_count > 0) and (active_count == 0):
-                if verbose == 1:
-                    print('This slave was found to be inactive')
+                logging.debug('This slave was found to be inactive')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
                 else:
                     cursor.execute("REPLACE INTO machines SET v6active=0 WHERE v6='" + slaveaddr + "'")
                 db.commit()
             else:
-                if verbose == 1:
-                    print('This slave was found to be active for some nodes, but inactive for others')
+                logging.debug('This slave was found to be active for some nodes, but inactive for others')
                 if protocol == 4:
                     cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
                 else:
@@ -218,21 +211,18 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             
             #lets see if this host needs a new slave list
             if node[2] == 0:
-                if verbose == 1:  
-                    print(addr[0] + ' Needs a new slavelist, lets send it to the HELLO message handler')
+                logging.debug('%s needs a new slavelist, lets send it to the HELLO message handler', addr[0])
                 hello_handler(clientsock, addr, data, nodelist, slavelists)
             return 0
 
     #the check must have been unsuccessfull because the for loop ended
-    if verbose == 1:
-        print(addr[0] + ' is an unknown host, ignore!')
+    logging.debug('%s is an unknown host, ignore!', addr[0])
     return 1
 
 #handles an incomming message
 def message_handler(clientsock, addr, nodelist, slavelists, protocol):
     data = clientsock.recv(BUFF)
-    if verbose == 1:
-        print(data)
+    logging.debug(data)
     if not data: 
         return
     #the recieved message decider
@@ -240,10 +230,10 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
         hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     elif data == b'goodbye':
         goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-    elif 'update' in data:
+    elif b'update' in data:
         update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     else:
-        print('Recieved an unknown packet type, ignore!')
+        logging.warning('Recieved an unknown packet type, ignore!')
 
 def main(argv):
     global verbose
@@ -298,8 +288,7 @@ def main(argv):
     nodelist = generate_nodelist(random.random(), protocol)
     slavelists = generate_slavelists(nodelist)
     end_time = time.time() + timer
-    if verbose == 1:
-        print('staying a while, and listening...')
+    logging.info('staying a while, and listening...')
     while 1:
         if time.time() > end_time:
             if verbose == 1:
