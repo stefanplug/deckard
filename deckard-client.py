@@ -96,7 +96,7 @@ def notify(slave):
     Notify the Deckard-server that a node is unavailable from our
     perspective.
     """
-    message = {'UPDATE': 'true', slave, 'STATUS': 0}
+    message = {'UPDATE': 'true', 'slave': slave, 'STATUS': 0}
     message = json.dumps(message)
     try:
         sock.connect((ip, port))
