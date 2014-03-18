@@ -41,9 +41,10 @@ def usage():
     )
     sys.exit(2)
 
-def ttl_formula(timer):
-    timer = timer / 2 + 1
-    return timer
+# return how many seconds are left in the hash epoch, plus a random deviation so that we prevent a HELLO-BOMB
+def ttl_formula(end_time):
+    ttl = end_time - time.time() + random.randint(2, 10)
+    return ttl
 
 def parse_type(dct):
     """
@@ -256,7 +257,7 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     return 1
 
 #handles an incomming message
-def message_handler(clientsock, addr, nodelist, slavelists, protocol):
+def message_handler(clientsock, addr, nodelist, slavelists, protocol, end_time):
     data = clientsock.recv(BUFF).decode()
     logging.debug(data)
     msg_type = json.loads(data, object_hook=parse_type)
@@ -266,7 +267,7 @@ def message_handler(clientsock, addr, nodelist, slavelists, protocol):
         return
     #the recieved message decider
     if msg_type == 'HELLO':
-        hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
+        hello_handler(clientsock, addr, data, nodelist, slavelists, protocol, end_time)
     elif msg_type == 'UPDATE':
         update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     else:
@@ -335,7 +336,7 @@ def main(argv):
             end_time = time.time() + timer
         else:
             clientsock, addr = serversock.accept()
-            message_handler(clientsock, addr, nodelist, slavelists, protocol)
+            message_handler(clientsock, addr, nodelist, slavelists, protocol, end_time)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
