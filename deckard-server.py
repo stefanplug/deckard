@@ -249,6 +249,7 @@ def main(argv):
     global groupsize
     global cursor
     global protocol
+    global timer
     try:
         opts, args = getopt.getopt(argv, "hp:g:t:s:v", ['help', 'protocol=', 'group=', 'timer=', 'stale=', 'verbose'])
     except getopt.GetoptError:
@@ -271,7 +272,7 @@ def main(argv):
         elif opt in ("-v", "--verbose"):
             verbose = 1
     if protocol == 0:
-        usge()
+        usage()
 
     #start being a deckard server
     if protocol == 4:
