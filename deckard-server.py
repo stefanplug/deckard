@@ -43,7 +43,7 @@ def usage():
 
 # return how many seconds are left in the hash epoch, plus a random deviation so that we prevent a HELLO-BOMB
 def ttl_formula(end_time):
-    ttl = end_time - time.time() + random.randint(2, 10)
+    ttl = end_time - time.time() + random.randrange(2, 10)
     return ttl
 
 def parse_type(dct):
