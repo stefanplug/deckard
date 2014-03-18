@@ -28,11 +28,11 @@ while($servers_row = mysqli_fetch_array($servers))
         $uptime = time() - $updatetime['tstamp'];  
         if($uptime > $staleout_time)
         {
-            echo "<tr bgcolor=red><td><b>*</b></td><td><b>Node:</b></td><td><b>" . $nodes_row['hostname'] . "</b></td><td><b>" . $nodes_row['v4'] . "</b></td><td><b>has NOT been seen by the server</b></td></tr>";
+            echo "<tr bgcolor=red><td><b>*</b></td><td><b>Slave:</b></td><td><b>" . $nodes_row['hostname'] . "</b></td><td><b>" . $nodes_row['v4'] . "</b></td><td><b>has NOT been seen by the server</b></td></tr>";
         }
         else
         {
-            echo "<tr><td></td><td><b>Node:</b></td><td><b>" . $nodes_row['hostname'] . "</b></td><td><b>" . $nodes_row['v4'] . "</b></td><td><b>last seen by the server " . $uptime . " seconds ago</b></td></tr>";
+            echo "<tr><td></td><td><b>Slave:</b></td><td><b>" . $nodes_row['hostname'] . "</b></td><td><b>" . $nodes_row['v4'] . "</b></td><td><b>last seen by the server " . $uptime . " seconds ago</b></td></tr>";
         }
         $master_nodes = mysqli_query($con,"SELECT machines.hostname, machines.v4, machinestates.active, machinestates.tstamp FROM machines, machinestates WHERE machinestates.master_id=machines.id  AND machinestates.master_id!=" . $servers_row['id'] . " AND machinestates.slave_id=" . $nodes_row['id'] ." AND machinestates.protocol=4");
         while($masters = mysqli_fetch_array($master_nodes))
@@ -42,11 +42,11 @@ while($servers_row = mysqli_fetch_array($servers))
             {
                 if($masters['active'] == 1)
                 {
-                    echo "<tr><td></td><td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>UP " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr><td></td><td>Master:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>UP " . $updatetime . " seconds ago</td></tr>";
                 }
                 else
                 {
-                    echo "<tr bgcolor='red'><td>*</td><td><td></td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN " . $updatetime . " seconds ago</td></tr>";
+                    echo "<tr bgcolor='red'><td>*</td><td>Master:</td><td>" . $masters['hostname'] . "</td><td>" . $masters['v4'] . "</td><td>DOWN " . $updatetime . " seconds ago</td></tr>";
                 }
             }
         }
