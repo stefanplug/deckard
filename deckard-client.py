@@ -113,23 +113,30 @@ class CheckNode():
             self.check_node(slave)
             #WARNING: The below time should be depending on what scripts
             #         scripts you plan to run for availability checking.
-            time.sleep(10)
+            time.sleep(1)
         return None
     def check_node(self, slave):
         """
         This function determines if a node is up or not. In here
         you should define the "availability" tests.
         """
-        ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
-        logging.info("ping return code: %i self.alive=%i", ping, self.alive)
+        ping = subprocess.check_call("ping -c 2 %s" % slave, shell=True)
         if (ping == 0) and (self.alive != 0):
-            logging.warning("notifing deckard-server slave is alive again")
+            logging.info("return code: %i self.alive = %i", ping, self.alive)
+            logging.warning("notifing deckard-server slave is self.alive again")
             notify_available(slave)
             self.alive = 0
+            logging.warning('set self.alive to %s', self.alive)
         elif (ping == 1) and (self.alive != 1):
             logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
             self.alive = 1
+        elif ping == self.alive:
+            logging.info("no slave status news, not sending anything")
+        else:
+            logging.info("we matched nothing")
+            
+            
 
 def notify_available(slave):
     """
