@@ -45,6 +45,33 @@ def ttl_formula(timer):
     timer = timer / 2 + 1
     return timer
 
+def parse_type(dct):
+    """
+    JSON parsing function.
+    """
+    if 'UPDATE' in dct:
+        return('UPDATE')
+    if 'HELLO' in dct:
+        return('HELLO')
+    elif 'ERROR' in dct:
+        return('ERROR')
+    else:
+        return("UNKOWN")
+
+def parse_slave(dct):
+    """
+    JSON parsing function.
+    """
+    if 'SLAVE' in dct:
+        return(dct['SLAVE'])
+
+def parse_status(dct):
+    """
+    JSON parsing function.
+    """
+    if 'STATUS' in dct:
+        return(dct['STATUS'])
+
 def stale_record_formula(timer):
     global stale_multiplier
     oldage = timer * stale_multiplier
@@ -102,7 +129,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global cursor
 
     #Check if you are already in the nodelist
-    logging.debug('Recieved a HELLO from %s, checking if we know this host', addr[0])
+    logging.debug('Received a HELLO from %s, checking if we know this host', addr[0])
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
             logging.debug('%s is a known address, we will allow him', addr[0])
@@ -137,7 +164,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
-    logging.warning('Recieved a GOODBYE from %s, checking if this is a known host', addr[0])
+    logging.warning('Received a GOODBYE from %s, checking if this is a known host', addr[0])
     for node in nodelist:
         if addr[0] in node:
             if verbose == 1:  
@@ -153,67 +180,76 @@ def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             return 0
 
     #the check must have been unsuccessfull because the for loop ended
-    if verbose == 1:
-        print(addr[0] + ' is an unknown host, ignore!')
+    logging.warning('%s unkown host, ignore', addr[0])
     return 1
 
 #handles an incomming update message
 def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
-    logging.debug('Recieved an UPDATE from %s checking if we know this host', addr[0])
+    logging.debug('Received an UPDATE from %s checking if we know this host', addr[0])
+    #example JSON message: "STATUS": 1, "slave": "145.100.108.235", "UPDATE": "true"}
+    logging.debug('%s', data)
+    msg_slave = json.loads(data, object_hook=parse_slave)
+    logging.debug('slaveaddr = %s', msg_slave)
+    msg_state = json.loads(data, object_hook=parse_status)
+    logging.debug('state = %s', msg_state)
+    logging.debug('updating %s', msg_slave)
     for node in nodelist:
         if addr[0] in node:
             logging.debug('%s is a known host, lets see what it has to say', addr[0])
             #update the database with this nodes findings
-            seen = '1' #temp, get from update massage
-            slaveaddr = '145.100.108.232' #temp, get from update message
+            #seen = '1' #temp, get from update massage
+            #slaveaddr = '145.100.108.232' #temp, get from update message
+            seen = str(msg_state)
+            slaveaddr = msg_slave
             if protocol == 4:
                 cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "'), protocol=4, active=" + seen + ", tstamp=" + str(int(time.time())))
             else:
                 cursor.execute("REPLACE INTO machinestates SET master_id=(SELECT id FROM machines WHERE v6='" + addr[0] + "') , slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "'), protocol=41, active=" + seen + ", tstamp=" + str(int(time.time())))
             db.commit()
 
-            #update the slave's status 
-            logging.debug('See if the update has changed anything for the slaves status')
-            stale_record_time = stale_record_formula(timer)
-            if protocol == 4:
-                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
-            else:
-                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=1 AND tstamp >"+ stale_record_time)
-            active_count = cursor.fetchall()
-            if protocol == 4:
-                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
-            else:
-                cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=0 AND tstamp >"+ stale_record_time)
-            inactive_count = cursor.fetchall()
-            if (inactive_count == 0) and (active_count > 0):
-                logging.debug('This slave was found to be active')
-                if protocol == 4:
-                    cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
-                else:
-                    cursor.execute("REPLACE INTO machines SET v6active=1 WHERE v6='" + slaveaddr + "'")
-                db.commit()
-            elif (inactive_count > 0) and (active_count == 0):
-                logging.debug('This slave was found to be inactive')
-                if protocol == 4:
-                    cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
-                else:
-                    cursor.execute("REPLACE INTO machines SET v6active=0 WHERE v6='" + slaveaddr + "'")
-                db.commit()
-            else:
-                logging.debug('This slave was found to be active for some nodes, but inactive for others')
-                if protocol == 4:
-                    cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
-                else:
-                    cursor.execute("REPLACE INTO machines SET v6active=2 WHERE v6='" + slaveaddr + "'")
-                db.commit()
-            
-            #lets see if this host needs a new slave list
-            if node[2] == 0:
-                logging.debug('%s needs a new slavelist, lets send it to the HELLO message handler', addr[0])
-                hello_handler(clientsock, addr, data, nodelist, slavelists)
-            return 0
+            ## WE CHECK SLAVE SLATUS IN PHP SCRIPT, BUT CAN BE USED FOR FURTURE 'PANIC ATTACK' FEATURE
+            ##update the slave's status 
+            #logging.debug('See if the update has changed anything for the slaves status')
+            #stale_record_time = stale_record_formula(timer)
+            #if protocol == 4:
+            #    cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=1 AND tstamp >"+ stale_record_time)
+            #else:
+            #    cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=1 AND tstamp >"+ stale_record_time)
+            #active_count = cursor.fetchall()
+            #if protocol == 4:
+            #    cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v4='" + slaveaddr + "') AND protocol=4 AND active=0 AND tstamp >"+ stale_record_time)
+            #else:
+            #    cursor.execute("SELECT COUNT(*) FROM machinestates WHERE slave_id=(SELECT id FROM machines WHERE v6='" + slaveaddr + "') AND protocol=41 AND active=0 AND tstamp >"+ stale_record_time)
+            #inactive_count = cursor.fetchall()
+            #if (inactive_count == 0) and (active_count > 0):
+            #    logging.debug('This slave was found to be active')
+            #    if protocol == 4:
+            #        cursor.execute("REPLACE INTO machines SET v4active=1 WHERE v4='" + slaveaddr + "'")
+            #    else:
+            #        cursor.execute("REPLACE INTO machines SET v6active=1 WHERE v6='" + slaveaddr + "'")
+            #    db.commit()
+            #elif (inactive_count > 0) and (active_count == 0):
+            #    logging.debug('This slave was found to be inactive')
+            #    if protocol == 4:
+            #        cursor.execute("REPLACE INTO machines SET v4active=0 WHERE v4='" + slaveaddr + "'")
+            #    else:
+            #        cursor.execute("REPLACE INTO machines SET v6active=0 WHERE v6='" + slaveaddr + "'")
+            #    db.commit()
+            #else:
+            #    logging.debug('This slave was found to be active for some nodes, but inactive for others')
+            #    if protocol == 4:
+            #        cursor.execute("REPLACE INTO machines SET v4active=2 WHERE v4='" + slaveaddr + "'")
+            #    else:
+            #        cursor.execute("REPLACE INTO machines SET v6active=2 WHERE v6='" + slaveaddr + "'")
+            #    db.commit()
+            #
+            ##lets see if this host needs a new slave list
+            #if node[2] == 0:
+            #    logging.debug('%s needs a new slavelist, lets send it to the HELLO message handler', addr[0])
+            #    hello_handler(clientsock, addr, data, nodelist, slavelists)
+            #return 0
 
     #the check must have been unsuccessfull because the for loop ended
     logging.debug('%s is an unknown host, ignore!', addr[0])
@@ -221,19 +257,20 @@ def update_handler(clientsock, addr, data, nodelist, slavelists, protocol):
 
 #handles an incomming message
 def message_handler(clientsock, addr, nodelist, slavelists, protocol):
-    data = clientsock.recv(BUFF)
+    data = clientsock.recv(BUFF).decode()
     logging.debug(data)
+    msg_type = json.loads(data, object_hook=parse_type)
+    logging.debug(msg_type)
+    #parse message type
     if not data: 
         return
     #the recieved message decider
-    if data == b'hello':
+    if msg_type == 'HELLO':
         hello_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-    elif data == b'goodbye':
-        goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol)
-    elif b'update' in data:
+    elif msg_type == 'UPDATE':
         update_handler(clientsock, addr, data, nodelist, slavelists, protocol)
     else:
-        logging.warning('Recieved an unknown packet type, ignore!')
+        logging.warning('Received an unknown packet type, ignore!')
 
 def main(argv):
     global verbose
