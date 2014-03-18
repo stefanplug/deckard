@@ -32,12 +32,12 @@ verbose = 0
 stale_multiplier = 5    #h(if time = 10 seconds and the multiplier = 5, then any record older than 50 seconds is stale)
 
 def usage():
-    print("Usage: decard-server -p 4 -g 5 -t 3600 -s 5 -v\n"
-        "-p[rotocol] 4 or 6     *Use ipv4 or ipv6? **Required**\n"
-        "-g[roup] 5             *The group size, default is 5\n"
-        "-t[imer] seconds       *The time between hashes, default is 3600 (1 hour)\n"
-        "-s[tale] 5             *The numer of timer times before update data is considered stale\n"
-        "-v[erbose]             *Verbose mode\n"
+    print('Usage: decard-server -p 4 -g 5 -t 3600 -s 5 -v\n'
+        '-p[rotocol] 4 or 6     *Use ipv4 or ipv6? **Required**\n'
+        '-g[roup] 5             *The group size, default is 5\n'
+        '-t[imer] seconds       *The time between hashes, default is 3600 (1 hour)\n'
+        '-s[tale] 5             *The numer of timer times before update data is considered stale\n'
+        '-v[erbose]             *Verbose mode\n'
     )
     sys.exit(2)
 
@@ -54,9 +54,7 @@ def stale_record_formula(timer):
 def generate_nodelist(salt, protocol):
     nodelist = []
     #get the node list form the database
-    if verbose == 1:
-        print('Contacting the database to fill up the node list, proceeding with hashing the hostname')
-        logging.info('Contacting the database to fill up the node list, proceeding with hashing the hostname')
+    logging.info('Contacting the database to fill up the node list, proceeding with hashing the hostname')
     if protocol == 4:
         cursor.execute('SELECT (v4) FROM machines WHERE (deckardserver IS NULL OR deckardserver = 0) AND v4 IS NOT NULL')
     else:
@@ -69,9 +67,10 @@ def generate_nodelist(salt, protocol):
         nodelist.append([hashed_addr, str(node[0]), 0])
     nodelist = sorted(nodelist)
     if verbose == 1:
+        logging.debug('###### Begin nodelist ######')
         for node in nodelist:
             print(node)
-            logging.info("%s", node)
+        logging.debug('###### End nodelist ######')
     return nodelist
 
 def generate_slavelists(nodelist):
@@ -90,9 +89,11 @@ def generate_slavelists(nodelist):
         slavelists.append(slavelist)
 
     if verbose == 1:
-        print('We came up with the following slave list:') 
+        logging.debug('###### Made this slave list ######')
+        #print('We came up with the following slave list:') 
         for slavelist in slavelists:
             print(slavelist)
+        logging.debug('###### End slave list ######')
     return slavelists
 
 #handles an incomming hello message
@@ -105,8 +106,7 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
         print('Recieved a HELLO from ' + addr[0] + ', checking if we know this host')
     for index_self, node in enumerate(nodelist):
         if addr[0] in node:
-            if verbose == 1:
-                print(addr[0] + ' is a known host, We will allow him')
+            logging.debug('%s is a known address, we will allow him', addr[0])
             #update the database that we have seen him
             if protocol == 4:
                 cursor.execute("REPLACE INTO machinestates SET master_id=1, slave_id=(SELECT id FROM machines WHERE v4='" + addr[0] + "'), protocol=4, active=1, tstamp=" + str(int(time.time())))
@@ -115,9 +115,10 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             db.commit()
             #look up this nodes slaves
             if verbose == 1:
-                print('this nodes slaves are:')
+                logging.debug('###### Node slaves ######')
                 for slaves in slavelists[index_self]:
                     print(slaves)
+                logging.debug('###### End node slave ######')
 
             #Send the slave list PLUS a TTL to the node
             ttl = ttl_formula(timer)
@@ -130,16 +131,14 @@ def hello_handler(clientsock, addr, data, nodelist, slavelists, protocol):
             return 0
     
     #the check must have been unsuccessfull because the for loop ended
-    if verbose == 1:
-        print(addr[0] + ' is an unknown host, ignore!')
+    logging.warning('%s is an unknown host, ignore!', addr[0])
     return 1
 
 #handles an incom0ming goodbye message
 def goodbye_handler(clientsock, addr, data, nodelist, slavelists, protocol):
     global db
     global cursor
-    if verbose == 1:
-        print('Recieved a GOODBYE from ' + addr[0] + ', checking if this is a known host')
+    logging.warning('Recieved a GOODBYE from %s, checking if this is a known host', addr[0])
     for node in nodelist:
         if addr[0] in node:
             if verbose == 1:  
