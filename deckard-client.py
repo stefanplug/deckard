@@ -87,8 +87,13 @@ def client(ip, port):
         logging.debug("Starting %i processes in 2 seconds", len(msg_slaves))
         time.sleep(2)
         pool = Pool(processes=len(msg_slaves))
+        #remove ourself from the slave list
+        msg_slaves.pop(0)
         for slave in msg_slaves:
             pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
+        p.join()
+        logging.debug('exiting')
+        exit(1)
     else:
         logging.debug("unkown message")
 
@@ -117,7 +122,7 @@ class CheckNode():
         ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
         logging.info("ping return code: %i", ping)
         if ping == 0:
-            logging.warning("ping return code: %i", ping)
+            logging.info("ping return code: %i", ping)
             notify_available(slave)
         else:
             logging.warning("ping return code: %i", ping)
