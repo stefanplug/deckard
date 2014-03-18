@@ -7,7 +7,7 @@ if (mysqli_connect_errno())
     echo "Failed to connect to MySQL: " . mysqli_connect_error();
 }
 
-$staleout_time = 55;
+$staleout_time = 300;
 if($_GET['staleout_time'])
 {
     $staleout_time = $_GET['staleout_time'];
