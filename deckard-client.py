@@ -123,9 +123,10 @@ class CheckNode():
         ping = subprocess.call("ping -c 2 %s" % slave, shell=True)
         logging.info("ping return code: %i", ping)
         if (ping == 0) and (self.alive != 0):
+            logging.warning("notifing deckard-server slave is alive again")
             notify_available(slave)
-        else:
-            logging.warning("ping return code: %i", ping)
+        elif self.alive != 1:
+            logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
 
 def notify_available(slave):
