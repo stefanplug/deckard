@@ -1,4 +1,19 @@
 #!/usr/bin/python3
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+# Original author: Stefan Plug, Sean Rijs
+#
 #import ConfigParser
 import sys
 import getopt
@@ -64,7 +79,11 @@ def sendrecvmsg(sock, msg):
     finally:
         sock.close()
 
-def client(ip, port):
+def client(given_ip, given_port):
+    global ip
+    global port
+    ip = given_ip
+    port = given_port
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     message = {'HELLO': 'true'}
     message = json.dumps(message)
@@ -124,7 +143,7 @@ class CheckNode():
         This function determines if a node is up or not. In here
         you should define the "availability" tests.
         """
-        ping = subprocess.check_call("scripts/ping.sh %s" % slave, shell=True)
+        ping = subprocess.check_call("/etc/deckardnode/scripts/ping.sh %s" % slave, shell=True)
         if (ping == 0) and (self.alive != 0):
             logging.warning("notifing deckard-server slave is self.alive again")
             notify_available(slave)
@@ -157,38 +176,3 @@ def notify_unvailable(slave):
     message = {'UPDATE': 'true', 'SLAVE': slave, 'STATUS': 0}
     message = json.dumps(message)
     sendmsg(sock, message)
-
-def main(argv):
-    # first parameters, then config file, else print help output
-    opts, args = getopt.getopt(argv, "s:p:hv", ['server=',
-                                                'port=',
-                                                'help',
-                                                'verbose',
-                                               ])
-    if opts == []: 
-        usage()
-
-    # assign parameters to variables
-    global ip
-    global port
-    log = logging
-    loglevel = log.WARNING
-    port = 1337
-    for opt, arg in opts:
-        if opt in ("-h", "--help"):
-            usage()
-        elif opt in ("-s", "--server"):
-            ip = str(arg)
-        elif opt in ("-p", "--port"):
-            port = int(arg)
-        elif opt in ("-v", "--verbose"):
-            loglevel=log.DEBUG
-    # start logging 
-    logformat = "%(asctime)s - %(levelname)s - %(message)s"
-    log.basicConfig(format=logformat, level=loglevel)
-    # keep running forever
-    while 1:
-        client(ip, port)
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
