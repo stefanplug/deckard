@@ -8,6 +8,7 @@ import json
 import logging
 import time
 from multiprocessing import Pool
+import os
 
 def usage():
     print("Usage: decard-client -s 127.0.0.1 -p 1337\n\n"
@@ -83,14 +84,15 @@ def client(ip, port):
         msg_ttl = json.loads(msg, object_hook=parse_ttl)
         logging.debug("TTL: %s", msg_ttl)
 
+        #remove ourself from the slave list
+        msg_slaves.pop(0)
         #start availability checking in parallel
         logging.debug("Starting %i processes in 2 seconds", len(msg_slaves))
         time.sleep(2)
         pool = Pool(processes=len(msg_slaves))
-        #remove ourself from the slave list
-        msg_slaves.pop(0)
         for slave in msg_slaves:
-            pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
+            #pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
+            pool.apply_async(CheckNode, (ip, port, slave, msg_ttl,))
         pool.close()
         pool.join()
         logging.debug('Client function done')
@@ -102,6 +104,8 @@ class CheckNode():
     Check a slave nodes availability
     """
     def __init__(self, server_ip, server_port, slave, ttl):
+        logging.debug('parent process: %i', os.getppid())
+        logging.debug('process id: %i', os.getpid())
         #the default mark is offline
         self.alive = 1
         self.ip = server_ip
@@ -113,21 +117,20 @@ class CheckNode():
             self.check_node(slave)
             #WARNING: The below time should be depending on what scripts
             #         scripts you plan to run for availability checking.
-            time.sleep(1)
+            time.sleep(10)
         #CheckNode doesn't need to return anything
+        logging.debug('%i: DONE', os.getpid())
         return None
     def check_node(self, slave):
         """
         This function determines if a node is up or not. In here
         you should define the "availability" tests.
         """
-        ping = subprocess.check_call("ping -c 2 %s" % slave, shell=True)
+        ping = subprocess.check_call("scripts/ping.sh %s" % slave, shell=True)
         if (ping == 0) and (self.alive != 0):
-            logging.info("return code: %i self.alive = %i", ping, self.alive)
             logging.warning("notifing deckard-server slave is self.alive again")
             notify_available(slave)
             self.alive = 0
-            logging.warning('set self.alive to %s', self.alive)
         elif (ping == 1) and (self.alive != 1):
             logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
@@ -137,8 +140,6 @@ class CheckNode():
         else:
             logging.info("we matched nothing")
             
-            
-
 def notify_available(slave):
     """
     Notify the Deckard-server that a node is available from our
