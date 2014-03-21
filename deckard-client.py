@@ -87,11 +87,9 @@ def client(ip, port):
         #remove ourself from the slave list
         msg_slaves.pop(0)
         #start availability checking in parallel
-        logging.debug("Starting %i processes in 2 seconds", len(msg_slaves))
-        time.sleep(2)
+        logging.debug("Starting %i processes", len(msg_slaves))
         pool = Pool(processes=len(msg_slaves))
         for slave in msg_slaves:
-            #pool.Process(target=CheckNode, args=(ip, port, slave, msg_ttl)).start()
             pool.apply_async(CheckNode, (ip, port, slave, msg_ttl,))
         pool.close()
         pool.join()
