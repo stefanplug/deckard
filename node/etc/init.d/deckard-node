@@ -6,8 +6,8 @@
 # Required-Stop:        $network $local_fs $remote_fs dbus
 # Default-Start:        2 3 4 5
 # Default-Stop:         0 1 6
-# Short-Description:    Mumble VoIP Server
-# Description:                  init script for the Deckard-node.
+# Short-Description:    Deckard-node
+# Description:          init script for the Deckard-node.
 ### END INIT INFO
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:
@@ -15,7 +15,7 @@ NAME=deckardnode
 DESC="deckard-node"
 PIDDIR=/var/run/$NAME
 PIDFILE=$PIDDIR/$NAME.pid
-DAEMON=/usr/sbin/deckardnode
+DAEMON=/usr/local/bin/deckard-node
 USER=sne
 GROUP=sne
 
@@ -39,7 +39,6 @@ case "$1" in
               --pidfile $PIDFILE \
               --exec $DAEMON \
               -- $DAEMON_OPTS
-        fi
         case "$?" in
                 0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
                 2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
@@ -94,7 +93,6 @@ case "$1" in
                               --pidfile $PIDFILE \
                               --exec $DAEMON \
                               -- $DAEMON_OPTS
-                        fi
                         case "$?" in
                                 0) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
                                 *) [ "$VERBOSE" != no ] && log_end_msg 1 ;;

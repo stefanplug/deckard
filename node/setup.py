@@ -13,9 +13,9 @@ setup(
     license = "GPLv3",
     author = "Stefan Plug, Sean Rijs",
     url = "https://github.com/stefanplug/deckard",
-    version = "0.3.3",
+    version = "0.3.5",
     scripts = ['scripts/deckard-node'],
     py_modules = ['deckardnode'],
-    data_files= [('/etc/deckardnode/scripts', ['scripts/ping.sh'])
-                  ('/etc/init.d/', ['scripts/init'])]
+    data_files= [('/etc/deckardnode/scripts', ['etc/scripts/ping.sh']),
+                  ('/etc/init.d/', ['etc/init.d/deckard-node'])]
 )
