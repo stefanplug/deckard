@@ -17,5 +17,5 @@ setup(
     scripts = ['scripts/deckard-node'],
     py_modules = ['deckardnode'],
     data_files= [('/etc/deckardnode/scripts', ['etc/scripts/ping.sh']),
-                  ('/etc/init.d/', ['etc/init.d/deckard-node'])]
+                 ('/etc/init.d/', ['etc/init.d/deckard-node'])]
 )
