@@ -114,6 +114,7 @@ class CheckNode():
             #WARNING: The below time should be depending on what scripts
             #         scripts you plan to run for availability checking.
             time.sleep(1)
+        #CheckNode doesn't need to return anything
         return None
     def check_node(self, slave):
         """
