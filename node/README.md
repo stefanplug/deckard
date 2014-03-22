@@ -28,7 +28,7 @@ sudo chown root. /etc/init.d/deckard-node
 Pip install
 ======
 
-To manually install using setuptools:
+To install using setuptools:
 ```
 python3 setup.py install
 ```
