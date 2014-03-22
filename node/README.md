@@ -25,8 +25,6 @@ sudo chown -R root. /etc/deckardnode/scripts/
 sudo chown root. /etc/init.d/deckard-node
 ```
 
-Note on the ```init.d``` script: if you stop the daemon the child processes will continue untill they are done (30s max)
-
 Pip install
 ======
 
