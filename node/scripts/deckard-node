@@ -57,7 +57,7 @@ def main(argv):
     log.basicConfig(format=logformat, level=loglevel)
     # keep running forever
     while 1:
-        client(ip, port)
+        deckardnode.client(ip, port)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
