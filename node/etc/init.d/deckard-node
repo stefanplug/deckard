@@ -36,12 +36,14 @@ case "$1" in
   start)
         [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
         [ -d $PIDDIR ] || install -o $USER -d $PIDDIR
-        start-stop-daemon --start --quiet \
+        start-stop-daemon --start \
               --make-pidfile \
               --pidfile $PIDFILE \
+              --chuid $USER:$GROUP \
               --background \
               --exec $DAEMON \
               -- $DAEMON_OPTS
+        echo `cat $PIDFILE`
         case "$?" in
                 0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
                 2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
@@ -93,8 +95,8 @@ case "$1" in
                         [ -d $PIDDIR ] || install -o $USER -d $PIDDIR
                         rm -f $PIDFILE
                         start-stop-daemon --start --quiet \
-                              --make-pidfile \
                               --pidfile $PIDFILE \
+                              --chuid $USER:$GROUP \
                               --background \
                               --exec $DAEMON \
                               -- $DAEMON_OPTS
