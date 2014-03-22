@@ -2,7 +2,7 @@ deckard
 =======
 
 Manual install
-========
+======
 To manually install by hand:
 ```
 git clone https://github.com/stefanplug/deckard.git
@@ -24,7 +24,7 @@ sudo chown root. /etc/init.d/deckard-node
 ```
 
 Pip install
-========
+======
 
 To manually install using setuptools:
 ```
