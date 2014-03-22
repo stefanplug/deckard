@@ -1,7 +1,7 @@
 deckard
 =======
 
-The node is built and tested for Ubuntu 12.04, and its only dependency is the ```python3``` package.
+The ```deckard-node``` is built and tested for Ubuntu 12.04, and its only dependency is the ```python3``` package.
 
 Manual install
 ======

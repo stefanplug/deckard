@@ -93,6 +93,7 @@ case "$1" in
                         [ -d $PIDDIR ] || install -o $USER -d $PIDDIR
                         rm -f $PIDFILE
                         start-stop-daemon --start --quiet \
+                              --make-pidfile \
                               --pidfile $PIDFILE \
                               --background \
                               --exec $DAEMON \
