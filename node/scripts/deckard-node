@@ -17,7 +17,7 @@
 import sys
 import getopt
 import logging
-import deckardnode
+from deckardnode import *
 
 def usage():
     print("Usage: decard-client -s 127.0.0.1 -p 1337\n\n"
