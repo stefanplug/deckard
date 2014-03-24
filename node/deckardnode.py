@@ -23,6 +23,7 @@ import json
 import logging
 import time
 from multiprocessing import Pool
+from threading import Thread
 import os
 
 def usage():
@@ -91,7 +92,11 @@ def client(given_ip, given_port):
     sock.close()
 
     #parse message type
-    msg_type = json.loads(msg, object_hook=parse_type)
+    try:
+        msg_type = json.loads(msg, object_hook=parse_type)
+    except:
+        logging.error("Can't decode message: %s", msg)
+        raise err
     logging.debug("Message type: %s", msg_type)
 
     if msg_type == 'UPDATE':
@@ -103,18 +108,21 @@ def client(given_ip, given_port):
         msg_ttl = json.loads(msg, object_hook=parse_ttl)
         logging.debug("TTL: %s", msg_ttl)
 
-        #remove ourself from the slave list
+        #remove our own address from the slave list
         msg_slaves.pop(0)
+
         #start availability checking in parallel
-        logging.debug("Starting %i processes", len(msg_slaves))
-        pool = Pool(processes=len(msg_slaves))
+        logging.debug("Starting %i threads", len(msg_slaves))
+        pool = []
         for slave in msg_slaves:
-            pool.apply_async(CheckNode, (ip, port, slave, msg_ttl,))
-        pool.close()
-        pool.join()
+            thread = Thread(target=CheckNode, args=(ip, port, slave, msg_ttl))
+            pool.append(thread)
+            thread.start()
+        for thread in pool:
+            thread.join(timeout=msg_ttl)
         logging.debug('Client function done')
     else:
-        logging.debug("unkown message")
+        logging.error("Unkown message:", msg_type)
 
 class CheckNode():
     """
@@ -124,7 +132,7 @@ class CheckNode():
         logging.debug('parent process: %i', os.getppid())
         logging.debug('process id: %i', os.getpid())
         #the default mark is offline
-        self.alive = 1
+        self.alive = 2
         self.ip = server_ip
         self.port = server_port
         self.ttl = ttl
@@ -143,16 +151,21 @@ class CheckNode():
         This function determines if a node is up or not. In here
         you should define the "availability" tests.
         """
-        ping = subprocess.check_call("/etc/deckardnode/scripts/ping.sh %s" % slave, shell=True)
-        if (ping == 0) and (self.alive != 0):
+        try:
+            test = subprocess.check_call("/etc/deckardnode/scripts/ping.sh %s" % slave, shell=True)
+            self.test = 0
+        except subprocess.CalledProcessError:
+            self.test = 1
+            pass
+        if (self.test == 0) and (self.alive != 0):
             logging.warning("notifing deckard-server slave is self.alive again")
             notify_available(slave)
             self.alive = 0
-        elif (ping == 1) and (self.alive != 1):
+        elif (self.test == 1) and (self.alive != 1):
             logging.warning("notifing deckard-server slave is down again")
             notify_unvailable(slave)
             self.alive = 1
-        elif ping == self.alive:
+        elif self.test == self.alive:
             logging.info("no slave status news, not sending anything")
         else:
             logging.info("we matched nothing")
