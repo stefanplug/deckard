@@ -22,7 +22,6 @@ import subprocess
 import json
 import logging
 import time
-from multiprocessing import Pool
 from threading import Thread
 import os
 
